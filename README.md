@@ -3,6 +3,10 @@
 This directory hosts a collection of batch-friendly Python utility scripts.
 Each script is designed to be standalone and includes its dependencies and Python version compatibility via PEP 723 metadata.
 
+*   `search.py`: Performs web searches from newline-separated queries.
+*   `browse.py`: Fetches and renders web pages as plain text.
+*   `flines.py`: Counts the number of lines in each Python function within a specified Python file.
+
 ## Usage
 
 To run a script, make it executable (`chmod +x <script_name.py>`) and then execute it directly. For example:
