@@ -8,8 +8,8 @@ dependencies = [
     "rich>=13.7",
 ]
 
-[dependency-groups.dev]
-dependencies = [
+[dependency-groups]
+dev = [
     "pytest>=8.0",
     "ruff",
     "mypy",
