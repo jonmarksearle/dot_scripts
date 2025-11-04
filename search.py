@@ -52,11 +52,9 @@ type Engines = Sequence[SearchEngine]
 class SearchEngine(Protocol):
     name: str
 
-    def build_url(self, query: str) -> str:
-        ... # ...
+    def build_url(self, query: str) -> str: ...  # ...
 
-    def extract_results(self, html: str, limit: int) -> list[Result]:
-        ... # ...
+    def extract_results(self, html: str, limit: int) -> list[Result]: ...  # ...
 
 
 class _BaseParser(HTMLParser):
@@ -520,6 +518,7 @@ def _write_outcome(outcome: QueryOutcome, stdout: TextIO, stderr: TextIO) -> int
         print(outcome.block, file=stdout)
         print(file=stdout)
     return 0
+
 
 def main(
     stdin: Iterable[str] = sys.stdin,

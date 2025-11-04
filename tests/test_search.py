@@ -10,7 +10,7 @@ from urllib import error
 
 import pytest
 
-from web import search
+import search
 
 
 GoogleEntry = tuple[str, str]
@@ -22,6 +22,7 @@ def google_engine() -> search.SearchEngine:
     google_engine_cls = getattr(search, "GoogleEngine", None)
     if google_engine_cls is None:
         pytest.fail("GoogleEngine not yet implemented")
+    assert google_engine_cls is not None
     return google_engine_cls()
 
 
@@ -30,6 +31,7 @@ def duckduckgo_api_engine() -> search.SearchEngine:
     api_engine_cls = getattr(search, "DuckDuckGoApiEngine", None)
     if api_engine_cls is None:
         pytest.fail("DuckDuckGoApiEngine not yet implemented")
+    assert api_engine_cls is not None
     return api_engine_cls()
 
 
@@ -65,6 +67,7 @@ def bing_sample_feed() -> str:
 def _google_anchor(text: str, href: str) -> str:
     return f'        <a class="result__a" href="{href}">{text}</a>'
 
+
 def _google_html(lines: Iterable[str]) -> str:
     anchors = "\n".join(lines)
     return dedent(
@@ -77,14 +80,18 @@ def _google_html(lines: Iterable[str]) -> str:
         """
     )
 
+
 def _google_html_for_entries(entries: Iterable[GoogleEntry]) -> str:
     return _google_html(_google_anchor(title, href) for title, href in entries)
+
 
 def _ddg_topic(text: str, url: str) -> DDGNode:
     return {"Text": text, "FirstURL": url}
 
+
 def _ddg_category(name: str, topics: Iterable[DDGNode]) -> DDGNode:
     return {"Name": name, "Topics": list(topics)}
+
 
 def _ddg_api_payload(related_topics: Iterable[DDGNode]) -> str:
     return json.dumps({"RelatedTopics": list(related_topics)})
@@ -151,6 +158,7 @@ def test__search_outcomes__engine_returns_results__success() -> None:
     assert "Title" in block
     assert "good" in block
 
+
 def test__main__writes_success__success(monkeypatch: pytest.MonkeyPatch) -> None:
     stdout = io.StringIO()
     stderr = io.StringIO()
@@ -163,6 +171,7 @@ def test__main__writes_success__success(monkeypatch: pytest.MonkeyPatch) -> None
     assert exit_code == 0
     assert block in stdout.getvalue()
     assert stderr.getvalue() == ""
+
 
 def test__search_outcomes__fetch_error__fail() -> None:
     engines = (StubEngine("good", []),)
@@ -182,6 +191,7 @@ def test__search_outcomes__fetch_error__fail() -> None:
     error_msg = outcomes[0].error
     assert error_msg is not None
     assert "boom" in error_msg
+
 
 def test__search_outcomes__rotates_default_engines(
     monkeypatch: pytest.MonkeyPatch,
@@ -211,6 +221,7 @@ def test__search_outcomes__rotates_default_engines(
     assert first_block is not None and "engine: alpha" in first_block
     assert second_block is not None and "engine: beta" in second_block
 
+
 def test__search_outcomes__robot_detection__fail() -> None:
     engines = (StubEngine("guarded", []),)
     html = "Please complete the following challenge to confirm this search was made by a human."
@@ -221,6 +232,7 @@ def test__search_outcomes__robot_detection__fail() -> None:
     error_msg = outcomes[0].error
     assert error_msg is not None
     assert "robot verification" in error_msg
+
 
 def test__google_engine__robot_challenge__fail(
     google_engine: search.SearchEngine,
@@ -236,6 +248,7 @@ def test__google_engine__robot_challenge__fail(
     assert error_msg is not None
     assert error_msg.startswith("Google:")
     assert "robot verification required" in error_msg
+
 
 def test__google_engine__http_error__fail(google_engine: search.SearchEngine) -> None:
     def failing_fetch(_: str) -> str:
@@ -253,6 +266,7 @@ def test__google_engine__http_error__fail(google_engine: search.SearchEngine) ->
     assert error_msg.startswith("Google:")
     assert "service unavailable" in error_msg
 
+
 def test__google_engine__no_supported_links__fail(
     google_engine: search.SearchEngine,
 ) -> None:
@@ -267,6 +281,7 @@ def test__google_engine__no_supported_links__fail(
     assert error_msg is not None
     assert error_msg.startswith("Google:")
     assert "no results" in error_msg
+
 
 def test__google_engine__respects_limit__edge(
     google_engine: search.SearchEngine,
@@ -316,6 +331,7 @@ def test__google_engine__parses_entries__edge(
     results = google_engine.extract_results(html, limit=limit)
     assert results == expected
 
+
 def test__google_engine__formats_success_block__success(
     google_engine: search.SearchEngine,
 ) -> None:
@@ -331,12 +347,14 @@ def test__google_engine__formats_success_block__success(
     assert "Query: python (engine: Google)" in block
     assert "1. Example Title — https://example.com" in block
 
+
 def test__google_engine__build_url_encodes_query__success(
     google_engine: search.SearchEngine,
 ) -> None:
     engine_type = type(google_engine)
     url = engine_type().build_url("c++ test")
     assert "q=c%2B%2B+test" in url
+
 
 def test__duckduckgo_api_engine__extracts_related_topics__success(
     duckduckgo_api_engine: search.SearchEngine,
@@ -348,6 +366,7 @@ def test__duckduckgo_api_engine__extracts_related_topics__success(
     payload = _ddg_api_payload(_ddg_topic(text, url) for text, url in entries)
     results = duckduckgo_api_engine.extract_results(payload, limit=5)
     assert results == entries
+
 
 def test__duckduckgo_api_engine__extracts_nested_topics__success(
     duckduckgo_api_engine: search.SearchEngine,
@@ -364,6 +383,7 @@ def test__duckduckgo_api_engine__extracts_nested_topics__success(
     results = duckduckgo_api_engine.extract_results(payload, limit=5)
     assert results == entries
 
+
 def test__duckduckgo_api_engine__empty_payload__fail(
     duckduckgo_api_engine: search.SearchEngine,
 ) -> None:
@@ -371,10 +391,12 @@ def test__duckduckgo_api_engine__empty_payload__fail(
     results = duckduckgo_api_engine.extract_results(payload, limit=3)
     assert results == []
 
+
 def test__default_engines__includes_google__edge() -> None:
     names = [engine.name for engine in search.DEFAULT_ENGINES]
     assert "Google" in names
     assert "DuckDuckGo API" in names
+
 
 def test__search_outcomes__default_cycle_includes_all_engines__success(
     monkeypatch: pytest.MonkeyPatch,
@@ -392,6 +414,7 @@ def test__search_outcomes__default_cycle_includes_all_engines__success(
     assert outcomes[0].is_error
     expected_order = [engine.name for engine in search.DEFAULT_ENGINES]
     assert captured == expected_order
+
 
 def test__bing_rss_engine__parses_items__success(bing_sample_feed: str) -> None:
     engine = search.BingRssEngine()

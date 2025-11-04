@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from web import browse
+import browse
 
 
 def test__browse_outcomes__invalid_scheme__fail() -> None:
@@ -65,6 +65,7 @@ def test__browse_outcomes__valid_url__success() -> None:
     )
     assert not outcomes[0].is_error
     assert outcomes[0].output == "content\n"
+
 
 def test__main__writes_success__success(monkeypatch: pytest.MonkeyPatch) -> None:
     stdout = io.StringIO()

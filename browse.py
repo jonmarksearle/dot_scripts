@@ -130,6 +130,7 @@ def ensure_dependencies() -> None:
             msg = f"Required dependency '{binary}' not found in PATH"
             raise FileNotFoundError(msg)
 
+
 def _write_outcome(outcome: BrowseOutcome, stdout: TextIO, stderr: TextIO) -> int:
     """Write outcome to appropriate stream and return exit code."""
     if outcome.is_error:
@@ -141,6 +142,7 @@ def _write_outcome(outcome: BrowseOutcome, stdout: TextIO, stderr: TextIO) -> in
     print(text, file=stdout, end=end)
     print(file=stdout)
     return 0
+
 
 def main(
     stdin: Iterable[str] = sys.stdin,
