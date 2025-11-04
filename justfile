@@ -1,5 +1,5 @@
 test:
-	uv run pytest
+	uv run --pythonpath=. pytest
 
 lint:
 	uv run ruff check
