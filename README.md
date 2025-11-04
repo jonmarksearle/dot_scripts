@@ -7,6 +7,13 @@ Each script is designed to be standalone and includes its dependencies and Pytho
 *   `browse.py`: Fetches and renders web pages as plain text.
 *   `flines.py`: Counts the number of lines in each Python function within a specified Python file.
 
+## Documentation
+
+*   `README.md`: Overview of the scripts and development commands.
+*   `browse.md`: Details the web browsing command.
+*   `search.md`: Outlines the web search command.
+*   `flines.md`: Documents the function line counter command.
+
 ## Usage
 
 To run a script, make it executable (`chmod +x <script_name.py>`) and then execute it directly. For example:
