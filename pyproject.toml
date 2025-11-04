@@ -3,10 +3,10 @@ name = "scripts"
 version = "0.1.0"
 description = "A collection of utility scripts"
 requires-python = ">=3.13"
-
-[project.dependencies]
-typer = ">=0.12"
-rich = ">=13.7"
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+]
 
 [dependency-groups.dev]
 dependencies = [
