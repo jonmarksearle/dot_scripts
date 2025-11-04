@@ -1,0 +1,15 @@
+[project]
+name = "scripts"
+version = "0.1.0"
+description = "A collection of utility scripts"
+requires-python = ">=3.13"
+
+[tool.uv]
+requires-python = ">=3.13"
+
+[tool.uv.dependencies]
+typer = ">=0.12"
+rich = ">=13.7"
+
+[tool.uv.dev-dependencies]
+pytest = ">=8.0"

@@ -1,9 +1,9 @@
 test:
-	PYTHONPATH=. uvx pytest typer rich -- pytest
+	uv run pytest
 
 lint:
-	uvx ruff check
-	uvx mypy **.py
+	uv run ruff check
+	uv run mypy **.py
 
 format:
-	uvx ruff format
+	uv run ruff format
