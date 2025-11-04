@@ -1,13 +1,8 @@
-#! /usr/bin/env python3
-# -*- coding: utf-8 -*-
-# PEP 723: Single-file script metadata
-# https://peps.python.org/pep-0723/
-#
-# script:
-#   description: Search the web for stdin queries and print formatted results.
-#   dependencies:
-#   python-version: ">=3.13"
-#
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.13"
+# dependencies = []
+# ///
 from __future__ import annotations
 
 import json

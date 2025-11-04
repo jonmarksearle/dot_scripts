@@ -5,11 +5,12 @@ Each script is designed to be standalone and includes its dependencies and Pytho
 
 ## Usage
 
-To run a script, use `uvx` followed by the script name. For example:
+To run a script, make it executable (`chmod +x <script_name.py>`) and then execute it directly. For example:
 
 ```bash
-uvx search < ~/.codex.search.txt
-uvx browse < ~/.codex.browse.txt
+./search.py < ~/.codex.search.txt
+./browse.py < ~/.codex.browse.txt
+./flines.py <file_path>
 ```
 
 Populate `~/.codex.search.txt` and `~/.codex.browse.txt` with newline-separated queries or URLs respectively.

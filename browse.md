@@ -15,7 +15,7 @@ Provide a single approved command for fetching and rendering web pages as plain 
 
 ## Example
 ```bash
-uvx browse < ~/.codex.browse.txt
+./browse.py < ~/.codex.browse.txt
 ```
 
 Populate `~/.codex.browse.txt` with newline-separated URLs before running the command. The tool writes a plain-text dump for each URL to stdout and errors to stderr.

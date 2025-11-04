@@ -15,7 +15,7 @@ Perform web searches from newline-separated queries. Results contain the top lin
 
 ## Example
 ```bash
-uvx search < ~/.codex.search.txt
+./search.py < ~/.codex.search.txt
 ```
 
 Populate `~/.codex.search.txt` with newline-separated queries before running the command. In offline setups the command will report network errors but still exercise parsing and validation paths.
