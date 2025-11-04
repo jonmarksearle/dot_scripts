@@ -1,5 +1,5 @@
 test:
-	PYTHONPATH=. uvx pytest
+	PYTHONPATH=. uvx pytest typer rich
 
 lint:
 	uvx ruff check
