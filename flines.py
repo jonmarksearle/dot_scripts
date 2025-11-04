@@ -66,7 +66,7 @@ def _child_pairs(
     node: ast.AST, parents: tuple[str, ...]
 ) -> list[tuple[ast.AST, tuple[str, ...]]]:
     return [
-        (ch, (*parents, (ch).name)) if _is_named(ch) else (ch, parents)
+        (ch, (*parents, ch.name)) if _is_named(ch) and isinstance(ch, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)) else (ch, parents)
         for ch in ast.iter_child_nodes(node)
     ]
 
