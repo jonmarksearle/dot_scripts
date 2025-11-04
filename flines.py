@@ -65,10 +65,11 @@ def _is_named(n: ast.AST) -> bool:
 def _child_pairs(
     node: ast.AST, parents: tuple[str, ...]
 ) -> list[tuple[ast.AST, tuple[str, ...]]]:
-    return [
-        (ch, (*parents, ch.name)) if _is_named(ch) and isinstance(ch, (ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef)) else (ch, parents)
-        for ch in ast.iter_child_nodes(node)
-    ]
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        next_parents = (*parents, node.name)
+    else:
+        next_parents = parents
+    return [(ch, next_parents) for ch in ast.iter_child_nodes(node)]
 
 
 def _walk_with_parents(root: ast.AST) -> Iterator[tuple[ast.AST, tuple[str, ...]]]:
