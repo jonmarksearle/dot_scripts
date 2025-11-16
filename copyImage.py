@@ -118,17 +118,23 @@ def _attempt_fetch(
         return None, f"{fetcher.name}: {exc}"
 
 
+def _fetch_result(fetcher: ClipboardFetcher) -> tuple[bytes | None, str]:
+    payload, error = _attempt_fetch(fetcher)
+    return payload, error or f"{fetcher.name} failed"
+
+
 def read_clipboard_image(
     fetchers: Sequence[ClipboardFetcher] | None = None,
 ) -> bytes:
     """Return clipboard image bytes using the first working fetcher."""
-    errors: list[str] = []
-    for fetcher in _ensure_fetchers(fetchers):
-        payload, error = _attempt_fetch(fetcher)
+    attempts = tuple(_fetch_result(fetcher) for fetcher in _ensure_fetchers(fetchers))
+    for payload, _ in attempts:
         if payload is not None:
             return payload
-        errors.append(error or f"{fetcher.name} failed")
-    detail = "; ".join(errors) or "no clipboard commands were tried"
+    detail = (
+        "; ".join(error for _, error in attempts if error)
+        or "no clipboard commands were tried"
+    )
     raise RuntimeError(f"Failed to read clipboard image: {detail}")
 
 

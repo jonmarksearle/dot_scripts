@@ -31,3 +31,7 @@ Commands:
 - Reworked `_run_first` to use `_command_result` helper + comprehension-driven flow, eliminating tuple appends and keeping functional style.
 - Gates: ruff format/check, mypy, pytest.
 ---
+2025-11-16
+- Refined `read_clipboard_image` using `_fetch_result` helper and comprehension-driven flow.
+- Gates: ruff format/check, mypy, pytest.
+---
