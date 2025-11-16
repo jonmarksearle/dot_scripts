@@ -35,3 +35,4 @@ Commands:
 - Refined `read_clipboard_image` using `_fetch_result` helper and comprehension-driven flow.
 - Gates: ruff format/check, mypy, pytest.
 ---
+- Renamed copyImage.py to paste_image.py and updated the test + shell wrapper to match after running gates.

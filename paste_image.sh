@@ -1,2 +1,2 @@
 #!/bin/bash
-/home/jon/Work/.scripts/copyImage.py
+/home/jon/Work/.scripts/paste_image.py

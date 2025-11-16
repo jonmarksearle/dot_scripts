@@ -2,8 +2,9 @@ test:
 	uv run python -m pytest
 
 lint:
-	uv run ruff check
-	uv run mypy **.py
+	ruff check
+	mypy **/*.py
 
 format:
-	uv run ruff format
+	ruff format
+	ruff check --fix

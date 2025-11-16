@@ -8,11 +8,11 @@ from pathlib import Path
 import pytest
 from PIL import Image
 
-import copyImage
+import paste_image
 
 
 def test__copy_clipboard_image__no_fetchers_succeed__fail(
-    failure_fetchers: tuple[copyImage.ClipboardFetcher, ...],
+    failure_fetchers: tuple[paste_image.ClipboardFetcher, ...],
     copy_image: Callable[..., Path],
 ) -> None:
     with pytest.raises(RuntimeError, match=r"wl-paste.+pngpaste"):
@@ -23,12 +23,12 @@ def test__convert_to_jpeg__invalid_payload__fail(
     invalid_payload: bytes,
 ) -> None:
     with pytest.raises(RuntimeError, match=r"decode"):
-        copyImage.convert_to_jpeg(invalid_payload)
+        paste_image.convert_to_jpeg(invalid_payload)
 
 
 def test__copy_clipboard_image__writes_expected_file__success(
     copy_image: Callable[..., Path],
-    success_fetchers: tuple[copyImage.ClipboardFetcher, ...],
+    success_fetchers: tuple[paste_image.ClipboardFetcher, ...],
     stdout_buffer: io.StringIO,
     fixed_time: Callable[[], dt.datetime],
 ) -> None:
@@ -47,7 +47,7 @@ def copy_image(
     stdout_buffer: io.StringIO,
 ) -> Callable[..., Path]:
     def _run(**kwargs) -> Path:
-        return copyImage.copy_clipboard_image(
+        return paste_image.copy_clipboard_image(
             output_dir=tmp_path,
             stdout=stdout_buffer,
             **kwargs,
@@ -70,12 +70,12 @@ def raise_helper() -> Callable[[Exception], Callable[[], bytes]]:
 @pytest.fixture
 def failure_fetchers(
     raise_helper: Callable[[Exception], Callable[[], bytes]],
-) -> tuple[copyImage.ClipboardFetcher, ...]:
+) -> tuple[paste_image.ClipboardFetcher, ...]:
     return (
-        copyImage.ClipboardFetcher(
+        paste_image.ClipboardFetcher(
             "wl-paste", raise_helper(FileNotFoundError("missing"))
         ),
-        copyImage.ClipboardFetcher(
+        paste_image.ClipboardFetcher(
             "pngpaste", raise_helper(RuntimeError("empty clipboard"))
         ),
     )
@@ -104,8 +104,8 @@ def png_fetcher(png_payload: bytes) -> Callable[[], bytes]:
 @pytest.fixture
 def success_fetchers(
     png_fetcher: Callable[[], bytes],
-) -> tuple[copyImage.ClipboardFetcher, ...]:
-    return (copyImage.ClipboardFetcher("fake", png_fetcher),)
+) -> tuple[paste_image.ClipboardFetcher, ...]:
+    return (paste_image.ClipboardFetcher("fake", png_fetcher),)
 
 
 @pytest.fixture
