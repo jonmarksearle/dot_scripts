@@ -123,6 +123,24 @@ def _fetch_result(fetcher: ClipboardFetcher) -> tuple[bytes | None, str]:
     return payload, error or f"{fetcher.name} failed"
 
 
+def _format_attempt_errors(
+    attempts: Sequence[tuple[bytes | None, str]],
+) -> str:
+    errors = tuple(error for _, error in attempts if error)
+    if not errors:
+        return "no clipboard commands were tried"
+    lines = "\n".join(errors)
+    if _needs_dependency_hint(errors):
+        return f"{lines}\nInstall a clipboard helper."
+    return lines
+
+
+def _needs_dependency_hint(errors: Sequence[str]) -> bool:
+    if len(errors) != len(DEFAULT_FETCHERS):
+        return False
+    return all(error.endswith(": not installed") for error in errors)
+
+
 def read_clipboard_image(
     fetchers: Sequence[ClipboardFetcher] | None = None,
 ) -> bytes:
@@ -131,11 +149,8 @@ def read_clipboard_image(
     for payload, _ in attempts:
         if payload is not None:
             return payload
-    detail = (
-        "; ".join(error for _, error in attempts if error)
-        or "no clipboard commands were tried"
-    )
-    raise RuntimeError(f"Failed to read clipboard image: {detail}")
+    detail = _format_attempt_errors(attempts)
+    raise RuntimeError(detail)
 
 
 def _load_image(payload: bytes) -> Image.Image:
@@ -183,6 +198,8 @@ def _clipboard_jpeg(
     fetchers: Sequence[ClipboardFetcher] | None,
 ) -> bytes:
     payload = read_clipboard_image(fetchers)
+    if not payload:
+        raise RuntimeError("Nothing to paste")
     return convert_to_jpeg(payload)
 
 

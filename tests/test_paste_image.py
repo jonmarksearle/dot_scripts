@@ -11,12 +11,12 @@ from PIL import Image
 import paste_image
 
 
-def test__copy_clipboard_image__no_fetchers_succeed__fail(
-    failure_fetchers: tuple[paste_image.ClipboardFetcher, ...],
+def test__copy_clipboard_image__empty_clipboard__fail(
+    empty_clipboard_fetchers: tuple[paste_image.ClipboardFetcher, ...],
     copy_image: Callable[..., Path],
 ) -> None:
-    with pytest.raises(RuntimeError, match=r"wl-paste.+pngpaste"):
-        copy_image(fetchers=failure_fetchers)
+    with pytest.raises(RuntimeError, match=r"Nothing to paste"):
+        copy_image(fetchers=empty_clipboard_fetchers)
 
 
 def test__convert_to_jpeg__invalid_payload__fail(
@@ -24,6 +24,24 @@ def test__convert_to_jpeg__invalid_payload__fail(
 ) -> None:
     with pytest.raises(RuntimeError, match=r"decode"):
         paste_image.convert_to_jpeg(invalid_payload)
+
+
+@pytest.mark.parametrize(
+    ("missing_dependency_fetchers", "expected_message"),
+    (
+        pytest.param(("wl-paste",), r"^wl-paste: not installed$", id="wl-paste"),
+        pytest.param(("xclip",), r"^xclip: not installed$", id="xclip"),
+        pytest.param(("pngpaste",), r"^pngpaste: not installed$", id="pngpaste"),
+    ),
+    indirect=("missing_dependency_fetchers",),
+)
+def test__copy_clipboard_image__missing_dependency__fail(
+    missing_dependency_fetchers: tuple[paste_image.ClipboardFetcher, ...],
+    expected_message: str,
+    copy_image: Callable[..., Path],
+) -> None:
+    with pytest.raises(RuntimeError, match=expected_message):
+        copy_image(fetchers=missing_dependency_fetchers)
 
 
 def test__copy_clipboard_image__writes_expected_file__success(
@@ -68,17 +86,27 @@ def raise_helper() -> Callable[[Exception], Callable[[], bytes]]:
 
 
 @pytest.fixture
-def failure_fetchers(
+def empty_clipboard_fetchers() -> tuple[paste_image.ClipboardFetcher, ...]:
+    def _empty_fetch() -> bytes:
+        return b""
+
+    return (paste_image.ClipboardFetcher("wl-paste", _empty_fetch),)
+
+
+@pytest.fixture
+def missing_dependency_fetchers(
+    request: pytest.FixtureRequest,
     raise_helper: Callable[[Exception], Callable[[], bytes]],
 ) -> tuple[paste_image.ClipboardFetcher, ...]:
-    return (
-        paste_image.ClipboardFetcher(
-            "wl-paste", raise_helper(FileNotFoundError("missing"))
-        ),
-        paste_image.ClipboardFetcher(
-            "pngpaste", raise_helper(RuntimeError("empty clipboard"))
-        ),
-    )
+    names: tuple[str, ...] = request.param
+
+    def _build(name: str) -> paste_image.ClipboardFetcher:
+        return paste_image.ClipboardFetcher(
+            name,
+            raise_helper(FileNotFoundError(f"{name} missing")),
+        )
+
+    return tuple(_build(name) for name in names)
 
 
 @pytest.fixture
