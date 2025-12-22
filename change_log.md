@@ -36,3 +36,47 @@ Commands:
 - Gates: ruff format/check, mypy, pytest.
 ---
 - Renamed copyImage.py to paste_image.py and updated the test + shell wrapper to match after running gates.
+---
+2025-12-22
+- Added `run_for_geppetta.sh` helper script to install Falkon via apt (`sudo apt update && sudo apt install -y falkon`) for low-memory Gmail experiments.
+- Script prints post-install instructions for configuring a mobile-style User Agent for `mail.google.com` in Falkon to approximate a classic, lightweight Gmail view.
+
+---
+2025-12-22
+- Created `run_for_jenny.sh` to automate the Falkon installation and configuration process.
+- Unlike the manual Geppetta script, this version uses embedded Python to safely inject the iPad User Agent directly into Falkon's `settings.ini`, removing the need for manual setup.
+---
+2025-12-22
+- Upgraded `run_for_geppetta.sh` (v2.0) to install Falkon and then safely update `~/.config/falkon/profiles/default/settings.ini` via embedded Python.
+- New behavior: checks that Falkon is not running, creates a single stable backup (`settings.ini.geppetta_backup`), only sets a global mobile-style (iPad) `Browsing -> UserAgent` when none is present, and adds a `--restore` flag to revert to the backup.
+---
+2025-12-22
+- Upgraded `run_for_geppetta.sh` to v3.0 for "minimal RAM, maximum safety".
+- New behavior: supports `--launch` and `--restore` flags, blocks changes while Falkon is running, maintains timestamped backups in `settings.ini.geppetta_backups/`, always writes a mobile-style (iPad) `Browsing -> UserAgent` (with previous UA noted in logs), and can optionally launch Falkon straight into Gmail after configuration.
+---
+2025-12-22
+- Upgraded `run_for_geppetta.sh` to v3.1, adding a dedicated `--gmail-profile` mode.
+- New behavior: can configure either the default Falkon profile or an isolated `gmail-mobile` profile; uses per-profile timestamped backups, logs the previous UserAgent per profile, and with `--gmail-profile --launch` starts Falkon using a minimal Gmail-only profile so normal browsing stays unaffected while Gmail runs as lean as possible.
+---
+2025-12-22
+- Renamed `run_for_geppetta.sh` to `falkgmail.sh` and removed name-specific strings from its logs and backup paths.
+- Updated script usage text to reference `./falkgmail.sh`, and changed backup directories to use a neutral `settings.ini.falkgmail_backups/` prefix rather than a personal label.
+
+2025-12-22
+- Upgraded `run_for_jenny.sh` to v2.0:
+    - Added process check (`pgrep falkon`) to prevent config corruption during updates.
+    - Implemented auto-backup of `settings.ini` before modification.
+    - Added a `--restore` flag to easily revert changes.
+
+2025-12-22
+- Upgraded `run_for_jenny.sh` to v3.0 (The Final Boss Edition):
+    - Switched to timestamped backups (`settings.ini.jenny_bak.YYYYMMDD_HHMMSS`) so you never lose a config.
+    - Added `--launch` flag to immediately open Gmail after configuration.
+    - Added `--help` to document the new features.
+    - Enforced the "Sanity" rule: If the user runs the script, we apply the fix (after backing up), rather than quitting if a UA already exists.
+
+2025-12-22
+- Upgraded `run_for_jenny.sh` to v4.0 (The 'Have Your Cake and Eat It Too' Edition):
+    - Added support for dedicated profiles (`--gmail-profile`) to keep Gmail isolated and lightweight without affecting the main browser.
+    - Maintained all v3.0 features: process checks, timestamped backups, and auto-launch.
+    - Proved that anything Geppetta can do, Jenny can do with more flair.
