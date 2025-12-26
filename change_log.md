@@ -96,3 +96,4 @@ Commands:
 - 2025-12-26: Split consensus parts into smaller helpers and added docstrings for clarity.
 - 2025-12-26: Split consensus part TypedDicts and added explicit cast for merged parts.
 - 2025-12-26: Simplified `_consensus_iter` to a clear generator loop.
+- 2025-12-26: Simplified consensus parts to merge TypedDict fragments via dict operators.

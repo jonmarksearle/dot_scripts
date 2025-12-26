@@ -10,7 +10,7 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, TypedDict, cast
+from typing import Iterable, TypedDict
 from datetime import date
 from collections import Counter
 from statistics import mean, stdev
@@ -54,24 +54,14 @@ class ConsensusForecast:
     sources: list[str]
 
 
-class TempParts(TypedDict):
+class ConsensusParts(TypedDict, total=False):
     min_temp: float | None
     max_temp: float | None
-
-
-class WindParts(TypedDict):
     min_wind_kmh: float | None
     max_wind_kmh: float | None
     wind_direction: list[str] | None
-
-
-class ConditionParts(TypedDict):
     prognosis: WeatherCode | None
     rain_prob: float | None
-
-
-class ConsensusParts(TempParts, WindParts, ConditionParts):
-    pass
 
 
 _WTTR_MAPPING = (
@@ -285,88 +275,43 @@ def _forecast_from_parts(
 
 def _temp_values(
     records: Iterable[DailyData], policy: ConsensusPolicy
-) -> tuple[float | None, float | None]:
+) -> ConsensusParts:
     min_temp = _compute_robust_mean(
         (r.min_temp for r in records if r.min_temp is not None), policy
     )
     max_temp = _compute_robust_mean(
         (r.max_temp for r in records if r.max_temp is not None), policy
     )
-    return (min_temp, max_temp)
+    return {"min_temp": min_temp, "max_temp": max_temp}
 
 
-def _wind_values(
-    records: Iterable[DailyData],
-) -> tuple[float | None, float | None, list[str] | None]:
+def _wind_values(records: Iterable[DailyData]) -> ConsensusParts:
     min_wind_kmh, max_wind_kmh = _compute_wind_range(records)
     w_dir = _compute_wind_direction(records)
-    return (min_wind_kmh, max_wind_kmh, list(w_dir) if w_dir is not None else None)
+    return {
+        "min_wind_kmh": min_wind_kmh,
+        "max_wind_kmh": max_wind_kmh,
+        "wind_direction": list(w_dir) if w_dir is not None else None,
+    }
 
 
 def _condition_values(
     records: Iterable[DailyData], policy: ConsensusPolicy
-) -> tuple[WeatherCode | None, float | None]:
-    return (_compute_prognosis(records, policy), _compute_rain_prob(records))
-
-
-def _temp_parts(min_temp: float | None, max_temp: float | None) -> TempParts:
-    """Build temperature fields for consensus DTO."""
-    return {"min_temp": min_temp, "max_temp": max_temp}
-
-
-def _wind_parts(
-    min_wind_kmh: float | None,
-    max_wind_kmh: float | None,
-    wind_direction: list[str] | None,
-) -> WindParts:
-    """Build wind fields for consensus DTO."""
-    return {
-        "min_wind_kmh": min_wind_kmh,
-        "max_wind_kmh": max_wind_kmh,
-        "wind_direction": wind_direction,
-    }
-
-
-def _condition_parts(
-    prognosis: WeatherCode | None, rain_prob: float | None
-) -> ConditionParts:
-    """Build condition fields for consensus DTO."""
-    return {"prognosis": prognosis, "rain_prob": rain_prob}
-
-
-def _consensus_dict(
-    min_temp: float | None,
-    max_temp: float | None,
-    min_wind_kmh: float | None,
-    max_wind_kmh: float | None,
-    wind_direction: list[str] | None,
-    prognosis: WeatherCode | None,
-    rain_prob: float | None,
 ) -> ConsensusParts:
-    """Combine all consensus fields into a single mapping."""
-    return cast(
-        ConsensusParts,
-        _temp_parts(min_temp, max_temp)
-        | _wind_parts(min_wind_kmh, max_wind_kmh, wind_direction)
-        | _condition_parts(prognosis, rain_prob),
-    )
+    return {
+        "prognosis": _compute_prognosis(records, policy),
+        "rain_prob": _compute_rain_prob(records),
+    }
 
 
 def _consensus_parts(
     records: Iterable[DailyData], policy: ConsensusPolicy
 ) -> ConsensusParts:
     """Calculate all consensus fields for the date."""
-    min_temp, max_temp = _temp_values(records, policy)
-    min_wind_kmh, max_wind_kmh, wind_direction = _wind_values(records)
-    prognosis, rain_prob = _condition_values(records, policy)
-    return _consensus_dict(
-        min_temp,
-        max_temp,
-        min_wind_kmh,
-        max_wind_kmh,
-        wind_direction,
-        prognosis,
-        rain_prob,
+    return (
+        _temp_values(records, policy)
+        | _wind_values(records)
+        | _condition_values(records, policy)
     )
 
 
