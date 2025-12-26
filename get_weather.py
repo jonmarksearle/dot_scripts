@@ -12,8 +12,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 from datetime import date
-from collections import Counter, defaultdict
+from collections import Counter
 from statistics import mean, stdev
+from itertools import groupby
 
 @dataclass(frozen=True)
 class DailyData:
@@ -90,31 +91,34 @@ class ConsensusPolicy:
     min_count_for_outlier: int = 3
     prognosis_ranking: tuple[str, ...] = ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
 
+@dataclass(frozen=True, slots=True)
 class ForecastWindow:
-    def __init__(self, dates: list[date]):
-        self.dates = dates
+    dates: list[date]
 
 def _group_by_date(data: list[DailyData]) -> dict[str, list[DailyData]]:
-    grouped = defaultdict(list)
-    for d in data:
-        grouped[str(d.date)].append(d)
-    return grouped
+    # Functional grouping: Sort first, then group
+    sorted_data = sorted(data, key=lambda x: x.date)
+    return {
+        str(k): list(g) 
+        for k, g in groupby(sorted_data, key=lambda x: x.date)
+    }
+
+def _calculate_mean_with_filter(values: list[float], mu: float, sigma: float, threshold: float) -> float:
+    filtered = [v for v in values if abs(v - mu) <= threshold * sigma]
+    return mean(filtered) if filtered else mu
 
 def _compute_robust_mean(values: list[float], policy: ConsensusPolicy) -> float | None:
     if not values:
         return None
-    if len(values) >= policy.min_count_for_outlier:
-        try:
-            sigma = stdev(values)
-            if sigma > 0:
-                mu = mean(values)
-                # Keep values within sigma threshold
-                filtered = [v for v in values if abs(v - mu) <= policy.sigma_threshold * sigma]
-                if filtered:
-                    return mean(filtered)
-        except (ValueError, ArithmeticError):
-            pass # Fallback to simple mean if stats fail
-    return mean(values)
+    if len(values) < policy.min_count_for_outlier:
+        return mean(values)
+    
+    # Branch-only logic (no try/except)
+    sigma = stdev(values)
+    if sigma == 0:
+        return mean(values)
+    
+    return _calculate_mean_with_filter(values, mean(values), sigma, policy.sigma_threshold)
 
 def _compute_wind_range(records: list[DailyData]) -> tuple[float | None, float | None]:
     min_winds = [r.min_wind for r in records if r.min_wind is not None]
@@ -147,26 +151,17 @@ def _is_valid_record(r: DailyData) -> bool:
 def _extract_sources(records: list[DailyData]) -> list[str]:
     return sorted([r.source for r in records if _is_valid_record(r)])
 
-def calculate_consensus(
-    window: ForecastWindow, 
-    data: list[DailyData], 
-    policy: ConsensusPolicy,
-    location_name: str = "Unknown"
-) -> list[ConsensusForecast]:
-    if not data:
-        return []
+def _build_single_consensus(
+    d_str: str, 
+    records: list[DailyData], 
+    policy: ConsensusPolicy, 
+    location_name: str
+) -> ConsensusForecast | None:
+    sources = _extract_sources(records)
+    if not sources:
+        return None
     
-    grouped = _group_by_date(data)
-    
-    def build_consensus(d_str: str) -> Optional[ConsensusForecast]:
-        if d_str not in grouped:
-            return None
-        records = grouped[d_str]
-        sources = _extract_sources(records)
-        if not sources:
-            return None
-        
-        return ConsensusForecast(
+    return ConsensusForecast(
         location=location_name,
         date=d_str,
         min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None], policy),
@@ -177,9 +172,19 @@ def calculate_consensus(
         prognosis=_compute_prognosis(records, policy),
         rain_prob=_compute_rain_prob(records),
         sources=sources
-        )
+    )
 
+def calculate_consensus(
+    window: ForecastWindow, 
+    data: list[DailyData], 
+    policy: ConsensusPolicy,
+    location_name: str = "Unknown"
+) -> list[ConsensusForecast]:
+    if not data:
+        return []
+    
+    grouped = _group_by_date(data)
     return [
-        cf for d in window.dates 
-        if (cf := build_consensus(str(d))) is not None
+        result for d in window.dates
+        if (result := _build_single_consensus(str(d), grouped.get(str(d), []), policy, location_name))
     ]
