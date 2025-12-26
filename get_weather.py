@@ -10,7 +10,7 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Iterable
 from datetime import date
 from collections import Counter
 from statistics import mean, stdev
@@ -95,53 +95,56 @@ class ConsensusPolicy:
 
 @dataclass(frozen=True, slots=True)
 class ForecastWindow:
-    dates: list[date]
+    dates: tuple[date, ...]
 
-def _group_by_date(data: list[DailyData]) -> dict[str, list[DailyData]]:
+def _group_by_date(data: Iterable[DailyData]) -> dict[str, tuple[DailyData, ...]]:
     # Functional grouping: Sort first, then group
     sorted_data = sorted(data, key=lambda x: x.date)
     return {
-        str(k): list(g) 
+        str(k): tuple(g) 
         for k, g in groupby(sorted_data, key=lambda x: x.date)
     }
 
-def _calculate_mean_with_filter(values: list[float], mu: float, sigma: float, threshold: float) -> float:
+def _calculate_mean_with_filter(values: tuple[float, ...], mu: float, sigma: float, threshold: float) -> float:
     filtered = [v for v in values if abs(v - mu) <= threshold * sigma]
     return mean(filtered) if filtered else mu
 
-def _compute_robust_mean(values: list[float], policy: ConsensusPolicy) -> float | None:
-    if not values:
+def _compute_robust_mean(values: Iterable[float], policy: ConsensusPolicy) -> float | None:
+    # Materialise for len/stats
+    vals = tuple(values)
+    if not vals:
         return None
-    if len(values) < policy.min_count_for_outlier:
-        return mean(values)
+    if len(vals) < policy.min_count_for_outlier:
+        return mean(vals)
     
     # Branch-only logic (no try/except)
-    sigma = stdev(values)
+    sigma = stdev(vals)
     if sigma == 0:
-        return mean(values)
+        return mean(vals)
     
-    return _calculate_mean_with_filter(values, mean(values), sigma, policy.sigma_threshold)
+    return _calculate_mean_with_filter(vals, mean(vals), sigma, policy.sigma_threshold)
 
-def _compute_wind_range(records: list[DailyData]) -> tuple[float | None, float | None]:
+def _compute_wind_range(records: Iterable[DailyData]) -> tuple[float | None, float | None]:
+    # Generators consumed by min/max
     min_winds = (r.min_wind for r in records if r.min_wind is not None)
     max_winds = (r.max_wind for r in records if r.max_wind is not None)
     return (min(min_winds, default=None), max(max_winds, default=None))
 
-def _compute_wind_direction(records: list[DailyData]) -> list[str] | None:
+def _compute_wind_direction(records: Iterable[DailyData]) -> tuple[str, ...] | None:
     directions = {r.direction for r in records if r.direction is not None}
-    return sorted(directions) if directions else None
+    return tuple(sorted(directions)) if directions else None
 
-def _compute_prognosis(records: list[DailyData], policy: ConsensusPolicy) -> str | None:
+def _compute_prognosis(records: Iterable[DailyData], policy: ConsensusPolicy) -> str | None:
     prognoses = (r.prognosis for r in records if r.prognosis is not None)
     # Counter consumes iterator directly
     counts = Counter(prognoses)
     if not counts:
         return None
     max_count = max(counts.values())
-    candidates = [p for p, c in counts.items() if c == max_count]
+    candidates = tuple(p for p, c in counts.items() if c == max_count)
     return candidates[0] if len(candidates) == 1 else pick_worst(candidates, policy)
 
-def _compute_rain_prob(records: list[DailyData]) -> float | None:
+def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
     probs = (r.rain_prob for r in records if r.rain_prob is not None)
     return max(probs, default=None)
 
@@ -152,36 +155,42 @@ def _is_valid_record(r: DailyData) -> bool:
         r.direction, r.prognosis, r.rain_prob
     ))
 
-def _extract_sources(records: list[DailyData]) -> list[str]:
+def _extract_sources(records: Iterable[DailyData]) -> tuple[str, ...]:
     # Sorted consumes generator
-    return sorted(r.source for r in records if _is_valid_record(r))
+    return tuple(sorted(r.source for r in records if _is_valid_record(r)))
 
 def _build_single_consensus(
     d_str: str, 
-    records: list[DailyData], 
+    records: Iterable[DailyData], 
     policy: ConsensusPolicy, 
     location_name: str
 ) -> ConsensusForecast | None:
+    # Records needs to be multiple-access in some logic, but here we pass it to multiple functions.
+    # _group_by_date returns tuples, so 'records' is a tuple here.
+    
+    # We call _extract_sources which returns a tuple.
     sources = _extract_sources(records)
     if not sources:
         return None
     
+    w_dir = _compute_wind_direction(records)
+    
     return ConsensusForecast(
         location=location_name,
         date=d_str,
-        min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None], policy),
-        max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None], policy),
+        min_temp=_compute_robust_mean((r.min_temp for r in records if r.min_temp is not None), policy),
+        max_temp=_compute_robust_mean((r.max_temp for r in records if r.max_temp is not None), policy),
         min_wind_kmh=_compute_wind_range(records)[0],
         max_wind_kmh=_compute_wind_range(records)[1],
-        wind_direction=_compute_wind_direction(records),
+        wind_direction=list(w_dir) if w_dir is not None else None, # Convert Tuple -> List DTO
         prognosis=_compute_prognosis(records, policy),
         rain_prob=_compute_rain_prob(records),
-        sources=sources
+        sources=list(sources) # Convert Tuple -> List DTO
     )
 
 def calculate_consensus(
     window: ForecastWindow, 
-    data: list[DailyData], 
+    data: Iterable[DailyData], 
     policy: ConsensusPolicy,
     location_name: str = "Unknown"
 ) -> list[ConsensusForecast]:
@@ -191,5 +200,5 @@ def calculate_consensus(
     grouped = _group_by_date(data)
     return [
         result for d in window.dates
-        if (result := _build_single_consensus(str(d), grouped.get(str(d), []), policy, location_name))
+        if (result := _build_single_consensus(str(d), grouped.get(str(d), ()), policy, location_name))
     ]
