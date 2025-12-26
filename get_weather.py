@@ -18,17 +18,6 @@ class DailyData:
     max_temp: float
     min_wind: float
     max_wind: float
-    direction: str
-    prognosis: str
-
-@dataclass
-class ConsensusForecast:
-    location: str
-    date: str
-    min_temp: float
-    max_temp: float
-    min_wind_kmh: float
-    max_wind_kmh: float
     wind_direction: str
     prognosis: str
     sources: List[str]
@@ -46,6 +35,17 @@ class WeatherTaxonomy:
         if code in mapping:
             return mapping[code]
         raise ValueError(f"Unknown WMO code: {code}")
+
+    @staticmethod
+    def map_wttr_text(text: str) -> str:
+        text = text.lower()
+        if "sunny" in text or "clear" in text:
+            return "CLEAR"
+        if "partly cloudy" in text or "cloudy" in text:
+            return "CLOUDY"
+        if "rain" in text:
+            return "RAIN"
+        return "UNKNOWN"
 
 class ConsensusEngine:
     @staticmethod

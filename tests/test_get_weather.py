@@ -75,7 +75,6 @@ def test__taxonomy__map_wmo__success(code: int, expected: str) -> None:
     """Ensure WMO codes map to standard taxonomy."""
     assert get_weather.WeatherTaxonomy.map_wmo_code(code) == expected
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 @pytest.mark.parametrize("text,expected", [
     ("Sunny", "CLEAR"), ("Partly cloudy", "CLOUDY"), ("Patchy rain nearby", "RAIN")
 ])
