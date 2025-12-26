@@ -77,32 +77,18 @@ def map_bom_text(text: str) -> str:
             return result
     return "UNKNOWN"
 
-def pick_worst(candidates: list[str]) -> str:
-    ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
+def pick_worst(candidates: list[str], policy: ConsensusPolicy = None) -> str:
+    ranking = policy.prognosis_ranking if policy else ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
     for rank in ranking:
         if rank in candidates:
             return rank
     return "UNKNOWN"
 
-class WeatherTaxonomy:
-    @staticmethod
-    def map_wmo_code(code: int) -> str:
-        return map_wmo_code(code)
-
-    @staticmethod
-    def map_wttr_text(text: str) -> str:
-        return map_wttr_text(text)
-
-    @staticmethod
-    def map_bom_text(text: str) -> str:
-        return map_bom_text(text)
-
-    @staticmethod
-    def pick_worst(candidates: list[str]) -> str:
-        return pick_worst(candidates)
-
+@dataclass(frozen=True)
 class ConsensusPolicy:
-    pass
+    sigma_threshold: float = 1.5
+    min_count_for_outlier: int = 3
+    prognosis_ranking: tuple[str, ...] = ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
 
 class ForecastWindow:
     def __init__(self, dates: list[date]):
@@ -114,16 +100,16 @@ def _group_by_date(data: list[DailyData]) -> dict[str, list[DailyData]]:
         grouped[str(d.date)].append(d)
     return grouped
 
-def _compute_robust_mean(values: list[float]) -> float | None:
+def _compute_robust_mean(values: list[float], policy: ConsensusPolicy) -> float | None:
     if not values:
         return None
-    if len(values) > 2:
+    if len(values) >= policy.min_count_for_outlier:
         try:
             sigma = stdev(values)
             if sigma > 0:
                 mu = mean(values)
-                # Keep values within 1.5 sigma
-                filtered = [v for v in values if abs(v - mu) <= 1.5 * sigma]
+                # Keep values within sigma threshold
+                filtered = [v for v in values if abs(v - mu) <= policy.sigma_threshold * sigma]
                 if filtered:
                     return mean(filtered)
         except (ValueError, ArithmeticError):
@@ -139,14 +125,14 @@ def _compute_wind_direction(records: list[DailyData]) -> list[str] | None:
     directions = {r.direction for r in records if r.direction is not None}
     return sorted(list(directions)) if directions else None
 
-def _compute_prognosis(records: list[DailyData]) -> str | None:
+def _compute_prognosis(records: list[DailyData], policy: ConsensusPolicy) -> str | None:
     prognoses = [r.prognosis for r in records if r.prognosis is not None]
     if not prognoses:
         return None
     counts = Counter(prognoses)
     max_count = max(counts.values())
     candidates = [p for p, c in counts.items() if c == max_count]
-    return candidates[0] if len(candidates) == 1 else WeatherTaxonomy.pick_worst(candidates)
+    return candidates[0] if len(candidates) == 1 else pick_worst(candidates, policy)
 
 def _compute_rain_prob(records: list[DailyData]) -> float | None:
     probs = [r.rain_prob for r in records if r.rain_prob is not None]
@@ -181,29 +167,19 @@ def calculate_consensus(
             return None
         
         return ConsensusForecast(
-            location=location_name,
-            date=d_str,
-            min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None]),
-            max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None]),
-            min_wind_kmh=_compute_wind_range(records)[0],
-            max_wind_kmh=_compute_wind_range(records)[1],
-            wind_direction=_compute_wind_direction(records),
-            prognosis=_compute_prognosis(records),
-            rain_prob=_compute_rain_prob(records),
-            sources=sources
+        location=location_name,
+        date=d_str,
+        min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None], policy),
+        max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None], policy),
+        min_wind_kmh=_compute_wind_range(records)[0],
+        max_wind_kmh=_compute_wind_range(records)[1],
+        wind_direction=_compute_wind_direction(records),
+        prognosis=_compute_prognosis(records, policy),
+        rain_prob=_compute_rain_prob(records),
+        sources=sources
         )
 
     return [
         cf for d in window.dates 
         if (cf := build_consensus(str(d))) is not None
     ]
-
-class ConsensusEngine:
-    @staticmethod
-    def calculate_consensus(
-        window: ForecastWindow, 
-        data: list[DailyData], 
-        policy: ConsensusPolicy,
-        location_name: str = "Unknown"
-    ) -> list[ConsensusForecast]:
-        return calculate_consensus(window, data, policy, location_name)
