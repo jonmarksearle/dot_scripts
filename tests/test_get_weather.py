@@ -126,7 +126,6 @@ def test__consensus__aggregation__temp__ignore_none__success(window_stub: Foreca
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.min_temp == 20.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__wind_range__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure wind range captures absolute min and max across sources."""
     data = mk_daily_list(base_date, {"min_w": 10, "max_w": 20}, {"min_w": 5, "max_w": 30})
@@ -141,7 +140,6 @@ def test__consensus__aggregation__wind_range__ignore_none__success(window_stub: 
     assert res.min_wind_kmh == 10.0
     assert res.max_wind_kmh == 20.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__rain_prob__max_success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure rain probability uses the Maximum value across sources."""
     data = mk_daily_list(base_date, {"rain_p": 10}, {"rain_p": 80})
@@ -154,7 +152,6 @@ def test__consensus__aggregation__rain_prob__ignore_none__success(window_stub: F
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.rain_prob == 50.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__direction__union_and_sort__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure wind direction returns a sorted unique list of all observed directions."""
     data = mk_daily_list(base_date, {"w_dir": "SW"}, {"w_dir": "N"}, {"w_dir": "SW"})
