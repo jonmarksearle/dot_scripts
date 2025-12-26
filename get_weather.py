@@ -67,19 +67,20 @@ _BOM_MAPPING = (
     (("storm",), WeatherCode.STORM),
 )
 
+_WMO_MAPPING = {
+    0: WeatherCode.CLEAR,
+    1: WeatherCode.CLEAR,
+    3: WeatherCode.CLOUDY,
+    61: WeatherCode.RAIN,
+    71: WeatherCode.SNOW,
+    95: WeatherCode.STORM,
+}
+
 
 def map_wmo_code(code: int) -> WeatherCode:
     """Map WMO integer code to standardized WeatherCode."""
-    mapping = {
-        0: WeatherCode.CLEAR,
-        1: WeatherCode.CLEAR,
-        3: WeatherCode.CLOUDY,
-        61: WeatherCode.RAIN,
-        71: WeatherCode.SNOW,
-        95: WeatherCode.STORM,
-    }
-    if code in mapping:
-        return mapping[code]
+    if code in _WMO_MAPPING:
+        return _WMO_MAPPING[code]
     raise ValueError(f"Unknown WMO code: {code}")
 
 

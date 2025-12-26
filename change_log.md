@@ -90,3 +90,4 @@ Commands:
 2025-12-25: Refactored get_weather.py to enforce strict coding standards: introduced StrEnum for taxonomy, removed all class-based namespaces, eliminated .append() mutation, enforced functional patterns, and added rigorous docstrings.
 2025-12-25: Refactored get_weather.py to enforce strict coding standards: introduced StrEnum for taxonomy, removed all class-based namespaces, eliminated .append() mutation, enforced functional patterns, and added rigorous docstrings.
 - 2025-12-26: Refactored `calculate_consensus` to use a functional comprehension pipeline.
+- 2025-12-26: Moved WMO mapping to module constant and simplified `map_wmo_code`.
