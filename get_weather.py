@@ -140,12 +140,14 @@ def _compute_rain_prob(records: List[DailyData]) -> Optional[float]:
     probs = [r.rain_prob for r in records if r.rain_prob is not None]
     return max(probs) if probs else None
 
+def _is_valid_record(r: DailyData) -> bool:
+    return any(x is not None for x in [
+        r.min_temp, r.max_temp, r.min_wind, r.max_wind, 
+        r.direction, r.prognosis, r.rain_prob
+    ])
+
 def _extract_sources(records: List[DailyData]) -> List[str]:
-    valid_sources = []
-    for r in records:
-        if any(x is not None for x in [r.min_temp, r.max_temp, r.min_wind, r.max_wind, r.direction, r.prognosis, r.rain_prob]):
-            valid_sources.append(r.source)
-    return sorted(valid_sources)
+    return sorted([r.source for r in records if _is_valid_record(r)])
 
 class ConsensusEngine:
     @staticmethod
@@ -159,32 +161,29 @@ class ConsensusEngine:
             return []
         
         grouped = _group_by_date(data)
-        results = []
-
-        for target_date in window.dates:
-            d_str = str(target_date)
+        
+        def build_consensus(d_str: str) -> Optional[ConsensusForecast]:
             if d_str not in grouped:
-                continue
-            
-            day_records = grouped[d_str]
-            sources = _extract_sources(day_records)
+                return None
+            records = grouped[d_str]
+            sources = _extract_sources(records)
             if not sources:
-                continue
-
-            min_t = _compute_robust_mean([r.min_temp for r in day_records if r.min_temp is not None])
-            max_t = _compute_robust_mean([r.max_temp for r in day_records if r.max_temp is not None])
-            min_w, max_w = _compute_wind_range(day_records)
-            w_dir = _compute_wind_direction(day_records)
-            prog = _compute_prognosis(day_records)
-            rain = _compute_rain_prob(day_records)
-
-            results.append(ConsensusForecast(
+                return None
+            
+            return ConsensusForecast(
                 location=location_name,
                 date=d_str,
-                min_temp=min_t, max_temp=max_t, 
-                min_wind_kmh=min_w, max_wind_kmh=max_w,
-                wind_direction=w_dir, prognosis=prog, 
-                rain_prob=rain, sources=sources
-            ))
-            
-        return results
+                min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None]),
+                max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None]),
+                min_wind_kmh=_compute_wind_range(records)[0],
+                max_wind_kmh=_compute_wind_range(records)[1],
+                wind_direction=_compute_wind_direction(records),
+                prognosis=_compute_prognosis(records),
+                rain_prob=_compute_rain_prob(records),
+                sources=sources
+            )
+
+        return [
+            cf for d in window.dates 
+            if (cf := build_consensus(str(d))) is not None
+        ]
