@@ -194,11 +194,10 @@ def test__consensus__outlier__stddev_0__no_removal__success(window_stub: Forecas
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.max_temp == 20.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__outlier_ignore_nones__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure Nones are excluded from count checks for outlier logic."""
-    # [20, 20, 20, None, 100]. Count valid=4. Outlier 100 removed. Mean 20.
-    data = mk_daily_list(base_date, {"max_t": 20}, {"max_t": 20}, {"max_t": 20}, {"max_t": None}, {"max_t": 100})
+    # [20, 20, 20, 20, None, 100]. Count valid=5. Outlier 100 removed. Mean 20.
+    data = mk_daily_list(base_date, {"max_t": 20}, {"max_t": 20}, {"max_t": 20}, {"max_t": 20}, {"max_t": None}, {"max_t": 100})
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.max_temp == 20.0
 

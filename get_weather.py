@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from typing import List, Optional
 from datetime import date
 from collections import Counter
+from statistics import mean, stdev
 
 @dataclass
 class DailyData:
@@ -124,12 +125,28 @@ class ConsensusEngine:
             if not has_valid_data:
                 continue
 
-            # Temp Mean Calculation
+            # Temp Mean Calculation (Robust)
+            def compute_robust_mean(values: List[float]) -> float:
+                if not values:
+                    return None
+                if len(values) > 2:
+                    try:
+                        sigma = stdev(values)
+                        if sigma > 0:
+                            mu = mean(values)
+                            # Keep values within 1.5 sigma
+                            filtered = [v for v in values if abs(v - mu) <= 1.5 * sigma]
+                            if filtered:
+                                return mean(filtered)
+                    except Exception:
+                        pass # Fallback to simple mean on math error
+                return mean(values)
+
             min_temps = [r.min_temp for r in day_records if r.min_temp is not None]
             max_temps = [r.max_temp for r in day_records if r.max_temp is not None]
             
-            avg_min_t = sum(min_temps) / len(min_temps) if min_temps else None
-            avg_max_t = sum(max_temps) / len(max_temps) if max_temps else None
+            avg_min_t = compute_robust_mean(min_temps)
+            avg_max_t = compute_robust_mean(max_temps)
 
             # Wind Range
             min_winds = [r.min_wind for r in day_records if r.min_wind is not None]
