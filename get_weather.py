@@ -53,27 +53,29 @@ def map_wmo_code(code: int) -> str:
         return mapping[code]
     raise ValueError(f"Unknown WMO code: {code}")
 
+_WTTR_MAPPING = (
+    (("sunny", "clear"), "CLEAR"),
+    (("partly cloudy", "cloudy"), "CLOUDY"),
+    (("rain",), "RAIN")
+)
+
+_BOM_MAPPING = (
+    (("fine", "sunny", "clear"), "CLEAR"),
+    (("cloud",), "CLOUDY"),
+    (("shower", "rain"), "RAIN"),
+    (("storm",), "STORM")
+)
+
 def map_wttr_text(text: str) -> str:
     text = text.lower()
-    mapping = [
-        (["sunny", "clear"], "CLEAR"),
-        (["partly cloudy", "cloudy"], "CLOUDY"),
-        (["rain"], "RAIN")
-    ]
-    for keywords, result in mapping:
+    for keywords, result in _WTTR_MAPPING:
         if any(k in text for k in keywords):
             return result
     return "UNKNOWN"
 
 def map_bom_text(text: str) -> str:
     text = text.lower()
-    mapping = [
-        (["fine", "sunny", "clear"], "CLEAR"),
-        (["cloud"], "CLOUDY"),
-        (["shower", "rain"], "RAIN"),
-        (["storm"], "STORM")
-    ]
-    for keywords, result in mapping:
+    for keywords, result in _BOM_MAPPING:
         if any(k in text for k in keywords):
             return result
     return "UNKNOWN"
@@ -121,35 +123,38 @@ def _compute_robust_mean(values: list[float], policy: ConsensusPolicy) -> float 
     return _calculate_mean_with_filter(values, mean(values), sigma, policy.sigma_threshold)
 
 def _compute_wind_range(records: list[DailyData]) -> tuple[float | None, float | None]:
-    min_winds = [r.min_wind for r in records if r.min_wind is not None]
-    max_winds = [r.max_wind for r in records if r.max_wind is not None]
-    return (min(min_winds) if min_winds else None, max(max_winds) if max_winds else None)
+    min_winds = (r.min_wind for r in records if r.min_wind is not None)
+    max_winds = (r.max_wind for r in records if r.max_wind is not None)
+    return (min(min_winds, default=None), max(max_winds, default=None))
 
 def _compute_wind_direction(records: list[DailyData]) -> list[str] | None:
     directions = {r.direction for r in records if r.direction is not None}
-    return sorted(list(directions)) if directions else None
+    return sorted(directions) if directions else None
 
 def _compute_prognosis(records: list[DailyData], policy: ConsensusPolicy) -> str | None:
-    prognoses = [r.prognosis for r in records if r.prognosis is not None]
-    if not prognoses:
-        return None
+    prognoses = (r.prognosis for r in records if r.prognosis is not None)
+    # Counter consumes iterator directly
     counts = Counter(prognoses)
+    if not counts:
+        return None
     max_count = max(counts.values())
     candidates = [p for p, c in counts.items() if c == max_count]
     return candidates[0] if len(candidates) == 1 else pick_worst(candidates, policy)
 
 def _compute_rain_prob(records: list[DailyData]) -> float | None:
-    probs = [r.rain_prob for r in records if r.rain_prob is not None]
-    return max(probs) if probs else None
+    probs = (r.rain_prob for r in records if r.rain_prob is not None)
+    return max(probs, default=None)
 
 def _is_valid_record(r: DailyData) -> bool:
-    return any(x is not None for x in [
+    # Generator expression for any()
+    return any(x is not None for x in (
         r.min_temp, r.max_temp, r.min_wind, r.max_wind, 
         r.direction, r.prognosis, r.rain_prob
-    ])
+    ))
 
 def _extract_sources(records: list[DailyData]) -> list[str]:
-    return sorted([r.source for r in records if _is_valid_record(r)])
+    # Sorted consumes generator
+    return sorted(r.source for r in records if _is_valid_record(r))
 
 def _build_single_consensus(
     d_str: str, 
