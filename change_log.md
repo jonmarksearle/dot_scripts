@@ -101,3 +101,4 @@ Commands:
 - 2025-12-26: Simplified `_record_payload` to use `asdict` for DailyData.
 - 2025-12-26: Excluded date/source from record payload when checking validity.
 - 2025-12-26: Moved record payload to DailyData method and reordered consensus helpers; tightened robust mean filtering.
+- 2025-12-26: Moved record validity to DailyData property, hoisted _record_values, and renamed date string args.

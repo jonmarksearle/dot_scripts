@@ -27,6 +27,14 @@ class WeatherCode(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
+def _record_values(payload: dict[str, object | None]) -> Iterable[object | None]:
+    """Return payload values as an iterator."""
+    return iter(payload.values())
+
+
+# TODO: Move _record_values to a shared generic helpers module.
+
+
 @dataclass(frozen=True)
 class DailyData:
     date: date
@@ -42,6 +50,11 @@ class DailyData:
     def get_payload(self) -> dict[str, object | None]:
         payload = asdict(self)
         return {k: v for k, v in payload.items() if k not in ("date", "source")}
+
+    @property
+    def is_valid(self) -> bool:
+        """Check if record has at least one valid data field."""
+        return any(x is not None for x in _record_values(self.get_payload()))
 
 
 @dataclass(frozen=True)
@@ -244,26 +257,16 @@ def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
     return max(probs, default=None)
 
 
-def _record_values(payload: dict[str, object | None]) -> Iterable[object | None]:
-    """Return payload values as an iterator."""
-    return iter(payload.values())
-
-
-def _is_valid_record(r: DailyData) -> bool:
-    """Check if record has at least one valid data field."""
-    return any(x is not None for x in _record_values(r.get_payload()))
-
-
 def _extract_sources(records: Iterable[DailyData]) -> tuple[str, ...]:
     """Extract sorted list of unique sources that provided valid data."""
-    return tuple(sorted(r.source for r in records if _is_valid_record(r)))
+    return tuple(sorted(r.source for r in records if r.is_valid))
 
 
 def _forecast_from_parts(
-    d_str: str, location_name: str, sources: tuple[str, ...], parts: ConsensusParts
+    date_str: str, location_name: str, sources: tuple[str, ...], parts: ConsensusParts
 ) -> ConsensusForecast:
     return ConsensusForecast(
-        location=location_name, date=d_str, sources=list(sources), **parts
+        location=location_name, date=date_str, sources=list(sources), **parts
     )
 
 
@@ -316,7 +319,7 @@ def _has_sources(sources: tuple[str, ...]) -> bool:
 
 def _forecast_if_sources(
     sources: tuple[str, ...],
-    d_str: str,
+    date_str: str,
     records: Iterable[DailyData],
     policy: ConsensusPolicy,
     location_name: str,
@@ -325,19 +328,19 @@ def _forecast_if_sources(
     if not _has_sources(sources):
         return None
     return _forecast_from_parts(
-        d_str, location_name, sources, _consensus_parts(records, policy)
+        date_str, location_name, sources, _consensus_parts(records, policy)
     )
 
 
 def _build_single_consensus(
-    d_str: str,
+    date_str: str,
     records: Iterable[DailyData],
     policy: ConsensusPolicy,
     location_name: str,
 ) -> ConsensusForecast | None:
     """Build consensus for a single date if data exists."""
     return _forecast_if_sources(
-        _extract_sources(records), d_str, records, policy, location_name
+        _extract_sources(records), date_str, records, policy, location_name
     )
 
 
