@@ -102,7 +102,6 @@ def test__taxonomy__severity_ranking__success(candidates: list[str], expected: s
 
 # --- ConsensusEngine Tests: Logic & Sparse Output ---
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__empty_input__success(window_stub: ForecastWindowStub) -> None:
     assert get_weather.ConsensusEngine.calculate_consensus(window_stub, [], get_weather.ConsensusPolicy()) == []
 

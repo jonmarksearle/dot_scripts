@@ -11,6 +11,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
+from datetime import date
 
 @dataclass
 class DailyData:
@@ -66,7 +67,16 @@ class WeatherTaxonomy:
                 return rank
         return "UNKNOWN"
 
+class ConsensusPolicy:
+    pass
+
+class ForecastWindow:
+    def __init__(self, dates: List[date]):
+        self.dates = dates
+
 class ConsensusEngine:
     @staticmethod
-    def calculate_daily_consensus(data: List[DailyData]) -> ConsensusForecast:
+    def calculate_consensus(window: ForecastWindow, data: List[DailyData], policy: ConsensusPolicy) -> List[ConsensusForecast]:
+        if not data:
+            return []
         raise NotImplementedError
