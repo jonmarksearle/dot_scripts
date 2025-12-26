@@ -112,7 +112,6 @@ def test__consensus__date_omission__all_fields_none__success(window_stub: Foreca
     assert len(results) == 1
     assert results[0].date == str(base_date)
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__sources_contribution__ignore_empty__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure a source is NOT listed if it contributes no valid data."""
     data = mk_daily_list(base_date, {"src": "A"}, {"src": "B", "all_none": True})

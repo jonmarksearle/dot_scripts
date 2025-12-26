@@ -113,11 +113,12 @@ class ConsensusEngine:
             day_records = grouped[d_str]
             # Check if ANY valid data exists (not just all Nones)
             has_valid_data = False
+            sources = []
             for r in day_records:
                 # If any field is non-None, it's valid
                 if any(x is not None for x in [r.min_temp, r.max_temp, r.min_wind, r.max_wind, r.direction, r.prognosis, r.rain_prob]):
                     has_valid_data = True
-                    break
+                    sources.append(r.source)
             
             if not has_valid_data:
                 continue
@@ -127,7 +128,7 @@ class ConsensusEngine:
                 location="Placeholder",
                 date=d_str,
                 min_temp=0.0, max_temp=0.0, min_wind_kmh=0.0, max_wind_kmh=0.0,
-                wind_direction=[], prognosis="", rain_prob=0.0, sources=[]
+                wind_direction=[], prognosis="", rain_prob=0.0, sources=sorted(sources)
             ))
             
         return results
