@@ -201,7 +201,6 @@ def test__consensus__outlier_ignore_nones__success(window_stub: ForecastWindowSt
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.max_temp == 20.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__grouping_determinism__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure unsorted mixed-date inputs produce sorted outputs."""
     data = mk_daily_list(base_date, {"offset": 1, "src": "A"}, {"offset": 0, "src": "B"})
