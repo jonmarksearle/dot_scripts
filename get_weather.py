@@ -123,11 +123,18 @@ class ConsensusEngine:
             if not has_valid_data:
                 continue
 
+            # Temp Mean Calculation
+            min_temps = [r.min_temp for r in day_records if r.min_temp is not None]
+            max_temps = [r.max_temp for r in day_records if r.max_temp is not None]
+            
+            avg_min_t = sum(min_temps) / len(min_temps) if min_temps else None
+            avg_max_t = sum(max_temps) / len(max_temps) if max_temps else None
+
             # Placeholder for actual consensus math (returning dummy for now to pass this specific test)
             results.append(ConsensusForecast(
                 location="Placeholder",
                 date=d_str,
-                min_temp=0.0, max_temp=0.0, min_wind_kmh=0.0, max_wind_kmh=0.0,
+                min_temp=avg_min_t, max_temp=avg_max_t, min_wind_kmh=0.0, max_wind_kmh=0.0,
                 wind_direction=[], prognosis="", rain_prob=0.0, sources=sorted(sources)
             ))
             

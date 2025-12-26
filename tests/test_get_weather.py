@@ -120,7 +120,6 @@ def test__consensus__sources_contribution__ignore_empty__success(window_stub: Fo
 
 # --- ConsensusEngine Tests: Aggregation Logic (Ignore None) ---
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__temp__ignore_none__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure None values in temp are ignored for mean calculation."""
     data = mk_daily_list(base_date, {"min_t": 20}, {"min_t": None})
