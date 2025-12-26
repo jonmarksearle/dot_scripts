@@ -137,12 +137,16 @@ class ConsensusEngine:
             abs_min_wind = min(min_winds) if min_winds else None
             abs_max_wind = max(max_winds) if max_winds else None
 
+            # Rain Probability
+            rain_probs = [r.rain_prob for r in day_records if r.rain_prob is not None]
+            max_rain = max(rain_probs) if rain_probs else None
+
             # Placeholder for actual consensus math (returning dummy for now to pass this specific test)
             results.append(ConsensusForecast(
                 location="Placeholder",
                 date=d_str,
                 min_temp=avg_min_t, max_temp=avg_max_t, min_wind_kmh=abs_min_wind, max_wind_kmh=abs_max_wind,
-                wind_direction=[], prognosis="", rain_prob=0.0, sources=sorted(sources)
+                wind_direction=[], prognosis="", rain_prob=max_rain, sources=sorted(sources)
             ))
             
         return results

@@ -148,7 +148,6 @@ def test__consensus__aggregation__rain_prob__max_success(window_stub: ForecastWi
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.rain_prob == 80.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__rain_prob__ignore_none__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure None values in rain_prob are ignored for Max calculation."""
     data = mk_daily_list(base_date, {"rain_p": 50}, {"rain_p": None})
