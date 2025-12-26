@@ -57,25 +57,28 @@ class WeatherTaxonomy:
     @staticmethod
     def map_wttr_text(text: str) -> str:
         text = text.lower()
-        if "sunny" in text or "clear" in text:
-            return "CLEAR"
-        if "partly cloudy" in text or "cloudy" in text:
-            return "CLOUDY"
-        if "rain" in text:
-            return "RAIN"
+        mapping = [
+            (["sunny", "clear"], "CLEAR"),
+            (["partly cloudy", "cloudy"], "CLOUDY"),
+            (["rain"], "RAIN")
+        ]
+        for keywords, result in mapping:
+            if any(k in text for k in keywords):
+                return result
         return "UNKNOWN"
 
     @staticmethod
     def map_bom_text(text: str) -> str:
         text = text.lower()
-        if "fine" in text or "sunny" in text or "clear" in text:
-            return "CLEAR"
-        if "cloud" in text:
-            return "CLOUDY"
-        if "shower" in text or "rain" in text:
-            return "RAIN"
-        if "storm" in text:
-            return "STORM"
+        mapping = [
+            (["fine", "sunny", "clear"], "CLEAR"),
+            (["cloud"], "CLOUDY"),
+            (["shower", "rain"], "RAIN"),
+            (["storm"], "STORM")
+        ]
+        for keywords, result in mapping:
+            if any(k in text for k in keywords):
+                return result
         return "UNKNOWN"
 
     @staticmethod
@@ -107,11 +110,12 @@ def _compute_robust_mean(values: List[float]) -> Optional[float]:
             sigma = stdev(values)
             if sigma > 0:
                 mu = mean(values)
+                # Keep values within 1.5 sigma
                 filtered = [v for v in values if abs(v - mu) <= 1.5 * sigma]
                 if filtered:
                     return mean(filtered)
-        except Exception:
-            pass 
+        except (ValueError, ArithmeticError):
+            pass # Fallback to simple mean if stats fail
     return mean(values)
 
 def _compute_wind_range(records: List[DailyData]) -> Tuple[Optional[float], Optional[float]]:
