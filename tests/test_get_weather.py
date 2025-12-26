@@ -174,7 +174,6 @@ def test__consensus__aggregation__prognosis__mode_and_tiebreaker__success(window
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.prognosis == "STORM"
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__direction__all_none_is_none__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure if ALL directions are None, result is None (not empty list)."""
     data = mk_daily_list(base_date, {"min_t": 20, "w_dir": None}, {"min_t": 20, "w_dir": None})
