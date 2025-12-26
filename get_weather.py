@@ -76,6 +76,14 @@ _WMO_MAPPING = {
     95: WeatherCode.STORM,
 }
 
+_DEFAULT_PROGNOSIS_RANKING = (
+    WeatherCode.STORM,
+    WeatherCode.SNOW,
+    WeatherCode.RAIN,
+    WeatherCode.CLOUDY,
+    WeatherCode.CLEAR,
+)
+
 
 def map_wmo_code(code: int) -> WeatherCode:
     """Map WMO integer code to standardized WeatherCode."""
@@ -115,26 +123,21 @@ class ConsensusPolicy:
     )
 
 
+def _prognosis_ranking(policy: ConsensusPolicy | None) -> tuple[WeatherCode, ...]:
+    return policy.prognosis_ranking if policy else _DEFAULT_PROGNOSIS_RANKING
+
+
+def _first_matching(
+    ranking: Iterable[WeatherCode], candidates: set[WeatherCode]
+) -> WeatherCode:
+    return next((rank for rank in ranking if rank in candidates), WeatherCode.UNKNOWN)
+
+
 def pick_worst(
-    candidates: Iterable[str], policy: ConsensusPolicy | None = None
+    candidates: Iterable[WeatherCode], policy: ConsensusPolicy | None = None
 ) -> WeatherCode:
     """Select the most severe prognosis from a list of candidates."""
-    ranking = (
-        policy.prognosis_ranking
-        if policy
-        else (
-            WeatherCode.STORM,
-            WeatherCode.SNOW,
-            WeatherCode.RAIN,
-            WeatherCode.CLOUDY,
-            WeatherCode.CLEAR,
-        )
-    )
-    c_set = set(candidates)
-    for rank in ranking:
-        if rank in c_set:
-            return rank  # rank is WeatherCode
-    return WeatherCode.UNKNOWN
+    return _first_matching(_prognosis_ranking(policy), set(candidates))
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,7 +155,7 @@ def _calculate_mean_with_filter(
     values: tuple[float, ...], mu: float, sigma: float, threshold: float
 ) -> float:
     """Calculate mean of values within sigma threshold."""
-    filtered = [v for v in values if abs(v - mu) <= threshold * sigma]
+    filtered = tuple(v for v in values if abs(v - mu) <= threshold * sigma)
     return mean(filtered) if filtered else mu
 
 
@@ -161,16 +164,15 @@ def _compute_robust_mean(
 ) -> float | None:
     """Compute mean excluding outliers > 1.5 sigma if count sufficient."""
     vals = tuple(values)
-    if not vals:
-        return None
-    if len(vals) < policy.min_count_for_outlier:
-        return mean(vals)
-
+    base = mean(vals) if vals else None
+    if base is None or len(vals) < policy.min_count_for_outlier:
+        return base
     sigma = stdev(vals)
-    if sigma == 0:
-        return mean(vals)
-
-    return _calculate_mean_with_filter(vals, mean(vals), sigma, policy.sigma_threshold)
+    return (
+        base
+        if sigma == 0
+        else _calculate_mean_with_filter(vals, base, sigma, policy.sigma_threshold)
+    )
 
 
 def _compute_wind_range(
@@ -209,17 +211,18 @@ def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
 
 def _is_valid_record(r: DailyData) -> bool:
     """Check if record has at least one valid data field."""
-    return any(
-        x is not None
-        for x in (
-            r.min_temp,
-            r.max_temp,
-            r.min_wind,
-            r.max_wind,
-            r.direction,
-            r.prognosis,
-            r.rain_prob,
-        )
+    return any(x is not None for x in _record_values(r))
+
+
+def _record_values(r: DailyData) -> tuple[object | None, ...]:
+    return (
+        r.min_temp,
+        r.max_temp,
+        r.min_wind,
+        r.max_wind,
+        r.direction,
+        r.prognosis,
+        r.rain_prob,
     )
 
 
@@ -236,23 +239,47 @@ def _build_forecast_dto(
     location_name: str,
 ) -> ConsensusForecast:
     """Construct the output DTO from aggregated records."""
-    w_dir = _compute_wind_direction(records)
+    min_temp, max_temp = _temp_consensus(records, policy)
+    min_wind_kmh, max_wind_kmh, w_dir = _wind_consensus(records)
+    prognosis, rain_prob = _conditions_consensus(records, policy)
     return ConsensusForecast(
         location=location_name,
         date=d_str,
-        min_temp=_compute_robust_mean(
-            (r.min_temp for r in records if r.min_temp is not None), policy
-        ),
-        max_temp=_compute_robust_mean(
-            (r.max_temp for r in records if r.max_temp is not None), policy
-        ),
-        min_wind_kmh=_compute_wind_range(records)[0],
-        max_wind_kmh=_compute_wind_range(records)[1],
-        wind_direction=list(w_dir) if w_dir is not None else None,
-        prognosis=_compute_prognosis(records, policy),
-        rain_prob=_compute_rain_prob(records),
+        min_temp=min_temp,
+        max_temp=max_temp,
+        min_wind_kmh=min_wind_kmh,
+        max_wind_kmh=max_wind_kmh,
+        wind_direction=w_dir,
+        prognosis=prognosis,
+        rain_prob=rain_prob,
         sources=list(sources),
     )
+
+
+def _temp_consensus(
+    records: Iterable[DailyData], policy: ConsensusPolicy
+) -> tuple[float | None, float | None]:
+    min_temp = _compute_robust_mean(
+        (r.min_temp for r in records if r.min_temp is not None), policy
+    )
+    max_temp = _compute_robust_mean(
+        (r.max_temp for r in records if r.max_temp is not None), policy
+    )
+    return (min_temp, max_temp)
+
+
+def _wind_consensus(
+    records: Iterable[DailyData],
+) -> tuple[float | None, float | None, list[str] | None]:
+    min_wind_kmh, max_wind_kmh = _compute_wind_range(records)
+    w_dir = _compute_wind_direction(records)
+    return (min_wind_kmh, max_wind_kmh, list(w_dir) if w_dir is not None else None)
+
+
+def _conditions_consensus(
+    records: Iterable[DailyData], policy: ConsensusPolicy
+) -> tuple[WeatherCode | None, float | None]:
+    return (_compute_prognosis(records, policy), _compute_rain_prob(records))
 
 
 def _build_single_consensus(
@@ -263,9 +290,22 @@ def _build_single_consensus(
 ) -> ConsensusForecast | None:
     """Build consensus for a single date if data exists."""
     sources = _extract_sources(records)
-    if not sources:
-        return None
-    return _build_forecast_dto(d_str, records, sources, policy, location_name)
+    return (
+        _build_forecast_dto(d_str, records, sources, policy, location_name)
+        if sources
+        else None
+    )
+
+
+def _consensus_for_date(
+    d: date,
+    grouped: dict[str, tuple[DailyData, ...]],
+    policy: ConsensusPolicy,
+    location_name: str,
+) -> ConsensusForecast | None:
+    return _build_single_consensus(
+        str(d), grouped.get(str(d), ()), policy, location_name
+    )
 
 
 def calculate_consensus(
@@ -281,10 +321,5 @@ def calculate_consensus(
     return [
         cf
         for d in window.dates
-        if (
-            cf := _build_single_consensus(
-                str(d), grouped.get(str(d), ()), policy, location_name
-            )
-        )
-        is not None
+        if (cf := _consensus_for_date(d, grouped, policy, location_name)) is not None
     ]
