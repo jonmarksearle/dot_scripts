@@ -10,7 +10,7 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Tuple
+from typing import Optional
 from datetime import date
 from collections import Counter, defaultdict
 from statistics import mean, stdev
@@ -19,26 +19,26 @@ from statistics import mean, stdev
 class DailyData:
     date: date
     source: str
-    min_temp: Optional[float]
-    max_temp: Optional[float]
-    min_wind: Optional[float]
-    max_wind: Optional[float]
-    direction: Optional[str]
-    prognosis: Optional[str]
-    rain_prob: Optional[float]
+    min_temp: float | None
+    max_temp: float | None
+    min_wind: float | None
+    max_wind: float | None
+    direction: str | None
+    prognosis: str | None
+    rain_prob: float | None
 
 @dataclass(frozen=True)
 class ConsensusForecast:
     location: str
     date: str
-    min_temp: Optional[float]
-    max_temp: Optional[float]
-    min_wind_kmh: Optional[float]
-    max_wind_kmh: Optional[float]
-    wind_direction: Optional[List[str]]
-    prognosis: Optional[str]
-    rain_prob: Optional[float]
-    sources: List[str]
+    min_temp: float | None
+    max_temp: float | None
+    min_wind_kmh: float | None
+    max_wind_kmh: float | None
+    wind_direction: list[str] | None
+    prognosis: str | None
+    rain_prob: float | None
+    sources: list[str]
 
 class WeatherTaxonomy:
     @staticmethod
@@ -82,7 +82,7 @@ class WeatherTaxonomy:
         return "UNKNOWN"
 
     @staticmethod
-    def pick_worst(candidates: List[str]) -> str:
+    def pick_worst(candidates: list[str]) -> str:
         ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
         for rank in ranking:
             if rank in candidates:
@@ -93,16 +93,16 @@ class ConsensusPolicy:
     pass
 
 class ForecastWindow:
-    def __init__(self, dates: List[date]):
+    def __init__(self, dates: list[date]):
         self.dates = dates
 
-def _group_by_date(data: List[DailyData]) -> Dict[str, List[DailyData]]:
+def _group_by_date(data: list[DailyData]) -> dict[str, list[DailyData]]:
     grouped = defaultdict(list)
     for d in data:
         grouped[str(d.date)].append(d)
     return grouped
 
-def _compute_robust_mean(values: List[float]) -> Optional[float]:
+def _compute_robust_mean(values: list[float]) -> float | None:
     if not values:
         return None
     if len(values) > 2:
@@ -118,16 +118,16 @@ def _compute_robust_mean(values: List[float]) -> Optional[float]:
             pass # Fallback to simple mean if stats fail
     return mean(values)
 
-def _compute_wind_range(records: List[DailyData]) -> Tuple[Optional[float], Optional[float]]:
+def _compute_wind_range(records: list[DailyData]) -> tuple[float | None, float | None]:
     min_winds = [r.min_wind for r in records if r.min_wind is not None]
     max_winds = [r.max_wind for r in records if r.max_wind is not None]
     return (min(min_winds) if min_winds else None, max(max_winds) if max_winds else None)
 
-def _compute_wind_direction(records: List[DailyData]) -> Optional[List[str]]:
+def _compute_wind_direction(records: list[DailyData]) -> list[str] | None:
     directions = {r.direction for r in records if r.direction is not None}
     return sorted(list(directions)) if directions else None
 
-def _compute_prognosis(records: List[DailyData]) -> Optional[str]:
+def _compute_prognosis(records: list[DailyData]) -> str | None:
     prognoses = [r.prognosis for r in records if r.prognosis is not None]
     if not prognoses:
         return None
@@ -136,7 +136,7 @@ def _compute_prognosis(records: List[DailyData]) -> Optional[str]:
     candidates = [p for p, c in counts.items() if c == max_count]
     return candidates[0] if len(candidates) == 1 else WeatherTaxonomy.pick_worst(candidates)
 
-def _compute_rain_prob(records: List[DailyData]) -> Optional[float]:
+def _compute_rain_prob(records: list[DailyData]) -> float | None:
     probs = [r.rain_prob for r in records if r.rain_prob is not None]
     return max(probs) if probs else None
 
@@ -146,17 +146,17 @@ def _is_valid_record(r: DailyData) -> bool:
         r.direction, r.prognosis, r.rain_prob
     ])
 
-def _extract_sources(records: List[DailyData]) -> List[str]:
+def _extract_sources(records: list[DailyData]) -> list[str]:
     return sorted([r.source for r in records if _is_valid_record(r)])
 
 class ConsensusEngine:
     @staticmethod
     def calculate_consensus(
         window: ForecastWindow, 
-        data: List[DailyData], 
+        data: list[DailyData], 
         policy: ConsensusPolicy,
         location_name: str = "Unknown"
-    ) -> List[ConsensusForecast]:
+    ) -> list[ConsensusForecast]:
         if not data:
             return []
         
