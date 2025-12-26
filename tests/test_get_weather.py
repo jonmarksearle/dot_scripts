@@ -188,7 +188,6 @@ def test__consensus__outlier__count_2__no_removal__success(window_stub: Forecast
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.max_temp == 60.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__outlier__stddev_0__no_removal__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure NO removal if all values are identical (stddev == 0)."""
     data = mk_daily_list(base_date, {"max_t": 20}, {"max_t": 20}, {"max_t": 20})
