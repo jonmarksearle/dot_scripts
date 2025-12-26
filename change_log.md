@@ -92,3 +92,4 @@ Commands:
 - 2025-12-26: Refactored `calculate_consensus` to use a functional comprehension pipeline.
 - 2025-12-26: Moved WMO mapping to module constant and simplified `map_wmo_code`.
 - 2025-12-26: Split consensus helpers and shortened `calculate_consensus`/builder helpers for standards compliance.
+- 2025-12-26: Refactored consensus helpers for smaller functions and added TypedDict parts builder.
