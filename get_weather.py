@@ -58,6 +58,12 @@ class WeatherTaxonomy:
             return "RAIN"
         if "storm" in text:
             return "STORM"
+    @staticmethod
+    def pick_worst(candidates: List[str]) -> str:
+        ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
+        for rank in ranking:
+            if rank in candidates:
+                return rank
         return "UNKNOWN"
 
 class ConsensusEngine:

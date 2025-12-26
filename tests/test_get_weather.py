@@ -89,7 +89,6 @@ def test__taxonomy__map_bom__success(text: str, expected: str) -> None:
     """Ensure BOM text strings map to standard taxonomy."""
     assert get_weather.WeatherTaxonomy.map_bom_text(text) == expected
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 @pytest.mark.parametrize("candidates,expected", [
     (["CLEAR", "RAIN"], "RAIN"),
     (["SNOW", "RAIN"], "SNOW"),
