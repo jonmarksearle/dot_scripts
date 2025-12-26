@@ -182,7 +182,6 @@ def test__consensus__aggregation__direction__all_none_is_none__success(window_st
 
 # --- ConsensusEngine Tests: Outlier Edge Cases ---
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__outlier__count_2__no_removal__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure outliers are KEPT when count <= 2."""
     data = mk_daily_list(base_date, {"max_t": 20}, {"max_t": 100})
