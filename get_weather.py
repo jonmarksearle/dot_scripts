@@ -10,12 +10,12 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from datetime import date
-from collections import Counter
+from collections import Counter, defaultdict
 from statistics import mean, stdev
 
-@dataclass
+@dataclass(frozen=True)
 class DailyData:
     date: date
     source: str
@@ -27,7 +27,7 @@ class DailyData:
     prognosis: Optional[str]
     rain_prob: Optional[float]
 
-@dataclass
+@dataclass(frozen=True)
 class ConsensusForecast:
     location: str
     date: str
@@ -76,6 +76,8 @@ class WeatherTaxonomy:
             return "RAIN"
         if "storm" in text:
             return "STORM"
+        return "UNKNOWN"
+
     @staticmethod
     def pick_worst(candidates: List[str]) -> str:
         ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
@@ -91,96 +93,94 @@ class ForecastWindow:
     def __init__(self, dates: List[date]):
         self.dates = dates
 
+def _group_by_date(data: List[DailyData]) -> Dict[str, List[DailyData]]:
+    grouped = defaultdict(list)
+    for d in data:
+        grouped[str(d.date)].append(d)
+    return grouped
+
+def _compute_robust_mean(values: List[float]) -> Optional[float]:
+    if not values:
+        return None
+    if len(values) > 2:
+        try:
+            sigma = stdev(values)
+            if sigma > 0:
+                mu = mean(values)
+                filtered = [v for v in values if abs(v - mu) <= 1.5 * sigma]
+                if filtered:
+                    return mean(filtered)
+        except Exception:
+            pass 
+    return mean(values)
+
+def _compute_wind_range(records: List[DailyData]) -> Tuple[Optional[float], Optional[float]]:
+    min_winds = [r.min_wind for r in records if r.min_wind is not None]
+    max_winds = [r.max_wind for r in records if r.max_wind is not None]
+    return (min(min_winds) if min_winds else None, max(max_winds) if max_winds else None)
+
+def _compute_wind_direction(records: List[DailyData]) -> Optional[List[str]]:
+    directions = {r.direction for r in records if r.direction is not None}
+    return sorted(list(directions)) if directions else None
+
+def _compute_prognosis(records: List[DailyData]) -> Optional[str]:
+    prognoses = [r.prognosis for r in records if r.prognosis is not None]
+    if not prognoses:
+        return None
+    counts = Counter(prognoses)
+    max_count = max(counts.values())
+    candidates = [p for p, c in counts.items() if c == max_count]
+    return candidates[0] if len(candidates) == 1 else WeatherTaxonomy.pick_worst(candidates)
+
+def _compute_rain_prob(records: List[DailyData]) -> Optional[float]:
+    probs = [r.rain_prob for r in records if r.rain_prob is not None]
+    return max(probs) if probs else None
+
+def _extract_sources(records: List[DailyData]) -> List[str]:
+    valid_sources = []
+    for r in records:
+        if any(x is not None for x in [r.min_temp, r.max_temp, r.min_wind, r.max_wind, r.direction, r.prognosis, r.rain_prob]):
+            valid_sources.append(r.source)
+    return sorted(valid_sources)
+
 class ConsensusEngine:
     @staticmethod
-    def calculate_consensus(window: ForecastWindow, data: List[DailyData], policy: ConsensusPolicy) -> List[ConsensusForecast]:
+    def calculate_consensus(
+        window: ForecastWindow, 
+        data: List[DailyData], 
+        policy: ConsensusPolicy,
+        location_name: str = "Unknown"
+    ) -> List[ConsensusForecast]:
         if not data:
             return []
         
-        # Group by date
-        grouped = {}
-        for d in data:
-            d_str = str(d.date)
-            if d_str not in grouped:
-                grouped[d_str] = []
-            grouped[d_str].append(d)
-            
+        grouped = _group_by_date(data)
         results = []
-        # Iterate through window dates to preserve order/horizon
+
         for target_date in window.dates:
             d_str = str(target_date)
             if d_str not in grouped:
                 continue
             
             day_records = grouped[d_str]
-            # Check if ANY valid data exists (not just all Nones)
-            has_valid_data = False
-            sources = []
-            for r in day_records:
-                # If any field is non-None, it's valid
-                if any(x is not None for x in [r.min_temp, r.max_temp, r.min_wind, r.max_wind, r.direction, r.prognosis, r.rain_prob]):
-                    has_valid_data = True
-                    sources.append(r.source)
-            
-            if not has_valid_data:
+            sources = _extract_sources(day_records)
+            if not sources:
                 continue
 
-            # Temp Mean Calculation (Robust)
-            def compute_robust_mean(values: List[float]) -> float:
-                if not values:
-                    return None
-                if len(values) > 2:
-                    try:
-                        sigma = stdev(values)
-                        if sigma > 0:
-                            mu = mean(values)
-                            # Keep values within 1.5 sigma
-                            filtered = [v for v in values if abs(v - mu) <= 1.5 * sigma]
-                            if filtered:
-                                return mean(filtered)
-                    except Exception:
-                        pass # Fallback to simple mean on math error
-                return mean(values)
+            min_t = _compute_robust_mean([r.min_temp for r in day_records if r.min_temp is not None])
+            max_t = _compute_robust_mean([r.max_temp for r in day_records if r.max_temp is not None])
+            min_w, max_w = _compute_wind_range(day_records)
+            w_dir = _compute_wind_direction(day_records)
+            prog = _compute_prognosis(day_records)
+            rain = _compute_rain_prob(day_records)
 
-            min_temps = [r.min_temp for r in day_records if r.min_temp is not None]
-            max_temps = [r.max_temp for r in day_records if r.max_temp is not None]
-            
-            avg_min_t = compute_robust_mean(min_temps)
-            avg_max_t = compute_robust_mean(max_temps)
-
-            # Wind Range
-            min_winds = [r.min_wind for r in day_records if r.min_wind is not None]
-            max_winds = [r.max_wind for r in day_records if r.max_wind is not None]
-            
-            abs_min_wind = min(min_winds) if min_winds else None
-            abs_max_wind = max(max_winds) if max_winds else None
-
-            # Rain Probability
-            rain_probs = [r.rain_prob for r in day_records if r.rain_prob is not None]
-            max_rain = max(rain_probs) if rain_probs else None
-
-            # Wind Direction
-            directions = {r.direction for r in day_records if r.direction is not None}
-            sorted_directions = sorted(list(directions)) if directions else None
-
-            # Prognosis Mode
-            prognoses = [r.prognosis for r in day_records if r.prognosis is not None]
-            final_prog = None
-            if prognoses:
-                counts = Counter(prognoses)
-                max_count = max(counts.values())
-                candidates = [p for p, c in counts.items() if c == max_count]
-                if len(candidates) == 1:
-                    final_prog = candidates[0]
-                else:
-                    final_prog = WeatherTaxonomy.pick_worst(candidates)
-
-            # Placeholder for actual consensus math (returning dummy for now to pass this specific test)
             results.append(ConsensusForecast(
-                location="Placeholder",
+                location=location_name,
                 date=d_str,
-                min_temp=avg_min_t, max_temp=avg_max_t, min_wind_kmh=abs_min_wind, max_wind_kmh=abs_max_wind,
-                wind_direction=sorted_directions, prognosis=final_prog, rain_prob=max_rain, sources=sorted(sources)
+                min_temp=min_t, max_temp=max_t, 
+                min_wind_kmh=min_w, max_wind_kmh=max_w,
+                wind_direction=w_dir, prognosis=prog, 
+                rain_prob=rain, sources=sources
             ))
             
         return results
