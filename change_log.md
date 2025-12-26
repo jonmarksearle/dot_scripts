@@ -80,3 +80,12 @@ Commands:
     - Added support for dedicated profiles (`--gmail-profile`) to keep Gmail isolated and lightweight without affecting the main browser.
     - Maintained all v3.0 features: process checks, timestamped backups, and auto-launch.
     - Proved that anything Geppetta can do, Jenny can do with more flair.
+- 2025-12-25: Updated tests in `.scripts/tests/test_get_weather.py` to fix imports, add taxonomy/consensus coverage, and align with standards.
+- 2025-12-25: Refined `.scripts/tests/test_get_weather.py` helpers and added prognosis tie-breaker test; reformatted long lines.
+- 2025-12-25: Tidied formatting and spacing in `.scripts/tests/test_get_weather.py`.
+- 2025-12-26: Refactored `mk_dataset` in `.scripts/tests/test_get_weather.py` to use a helper and list comprehension.
+- 2025-12-26: Renamed `mk_dataset` to `build_daily_data_records` in `.scripts/tests/test_get_weather.py`.
+2025-12-25: Initialized get_weather.py with specification, design, and initial TDD test suite. Completed TipToe 2 of implementation.
+2025-12-25: Refactored get_weather.py for strict functional standards and type safety. Logic layer fully tested and GREEN.
+2025-12-25: Refactored get_weather.py to enforce strict coding standards: introduced StrEnum for taxonomy, removed all class-based namespaces, eliminated .append() mutation, enforced functional patterns, and added rigorous docstrings.
+2025-12-25: Refactored get_weather.py to enforce strict coding standards: introduced StrEnum for taxonomy, removed all class-based namespaces, eliminated .append() mutation, enforced functional patterns, and added rigorous docstrings.

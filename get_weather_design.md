@@ -58,3 +58,27 @@
 5.  **Providers**: Test individual fetch with Budget Depletion logic mocked.
 6.  **`WeatherOrchestrator`**: Test Global Timeout (partial success) and Provider Budget cutoffs.
 7.  **`main`**: Integration.
+
+
+## 6 Steps and TipToes
+
+Overall Project Steps
+   * Step 1: Write get_weather.md (Specification) and get_weather_design.md. [COMPLETE]
+   * Step 2: Write .scripts/tests/test_get_weather.py (Tests). [COMPLETE for Logic Layer]
+   * Step 3: TDD LOOP (Implementation). [IN PROGRESS]
+
+  ---
+
+  Step 3: TDD Loop TipToes
+   * TipToe 0: Make sure each test is disabled using skipped decorator. Run to confirm baseline GREEN.
+   * TipToe 1: Enable the first test. Run uvx pytest to confirm RED.
+   * TipToe 2: Implement the minimum code to make that test pass (GREEN).
+   * TipToe 3: Enable the next test. Run uvx pytest to confirm RED.
+   * TipToe 4: Implement the minimum code to make that second test pass (GREEN).
+   * TipToe 5: Git Commit and Repeat TipToe 3 and TipToe 4 until all tests pass individually.
+   * TipToe 6: Remove all skipped decorators. Run uvx pytest to ensure the entire suite is GREEN.
+
+  Step 4: Refactor Loop TipToes
+   * TipToe 7: Refactor code in get_weather.py to improve clarity and maintainability, ensuring all tests stay GREEN.
+   * TipToe 8: Git Commit and Repeat TipToe 7 until satisfied with code quality.
+

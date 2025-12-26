@@ -10,7 +10,7 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Optional, Iterable
 from datetime import date
 from collections import Counter
 from statistics import mean, stdev
