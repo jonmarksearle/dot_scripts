@@ -47,6 +47,19 @@ class WeatherTaxonomy:
             return "RAIN"
         return "UNKNOWN"
 
+    @staticmethod
+    def map_bom_text(text: str) -> str:
+        text = text.lower()
+        if "fine" in text or "sunny" in text or "clear" in text:
+            return "CLEAR"
+        if "cloud" in text:
+            return "CLOUDY"
+        if "shower" in text or "rain" in text:
+            return "RAIN"
+        if "storm" in text:
+            return "STORM"
+        return "UNKNOWN"
+
 class ConsensusEngine:
     @staticmethod
     def calculate_daily_consensus(data: List[DailyData]) -> ConsensusForecast:

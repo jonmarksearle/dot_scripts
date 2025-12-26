@@ -82,7 +82,6 @@ def test__taxonomy__map_wttr__success(text: str, expected: str) -> None:
     """Ensure wttr.in strings map to standard taxonomy."""
     assert get_weather.WeatherTaxonomy.map_wttr_text(text) == expected
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 @pytest.mark.parametrize("text,expected", [
     ("Fine", "CLEAR"), ("Cloudy", "CLOUDY"), ("Showers", "RAIN"), ("Possible storm", "STORM")
 ])
