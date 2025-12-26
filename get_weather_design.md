@@ -63,9 +63,10 @@
 ## 6 Steps and TipToes
 
 Overall Project Steps
-   * Step 1: Write get_weather.md (Specification) and get_weather_design.md. [COMPLETE]
-   * Step 2: Write .scripts/tests/test_get_weather.py (Tests). [COMPLETE for Logic Layer]
-   * Step 3: TDD LOOP (Implementation). [IN PROGRESS]
+   * Step 1: Write get_weather.md (Specification) and get_weather_design.md.
+   * Step 2: Write .scripts/tests/test_get_weather.py (Tests).
+   * Step 3: TDD LOOP (Implementation).
+   * Step 4: Refactor LOOP (Improvement).
 
   ---
 
@@ -77,6 +78,8 @@ Overall Project Steps
    * TipToe 4: Implement the minimum code to make that second test pass (GREEN).
    * TipToe 5: Git Commit and Repeat TipToe 3 and TipToe 4 until all tests pass individually.
    * TipToe 6: Remove all skipped decorators. Run uvx pytest to ensure the entire suite is GREEN.
+
+  ---
 
   Step 4: Refactor Loop TipToes
    * TipToe 7: Refactor code in get_weather.py to improve clarity and maintainability, ensuring all tests stay GREEN.
