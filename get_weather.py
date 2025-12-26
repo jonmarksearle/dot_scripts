@@ -34,7 +34,7 @@ class DailyData:
     min_wind: float | None
     max_wind: float | None
     direction: str | None
-    prognosis: str | None
+    prognosis: WeatherCode | None
     rain_prob: float | None
 
 @dataclass(frozen=True)
@@ -46,7 +46,7 @@ class ConsensusForecast:
     min_wind_kmh: float | None
     max_wind_kmh: float | None
     wind_direction: list[str] | None
-    prognosis: str | None
+    prognosis: WeatherCode | None
     rain_prob: float | None
     sources: list[str]
 
@@ -96,20 +96,32 @@ def map_bom_text(text: str) -> WeatherCode:
 class ConsensusPolicy:
     sigma_threshold: float = 1.5
     min_count_for_outlier: int = 3
-    prognosis_ranking: tuple[str, ...] = ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
+    prognosis_ranking: tuple[WeatherCode, ...] = (
+        WeatherCode.STORM, 
+        WeatherCode.SNOW, 
+        WeatherCode.RAIN, 
+        WeatherCode.CLOUDY, 
+        WeatherCode.CLEAR
+    )
 
-def pick_worst(candidates: Iterable[str], policy: ConsensusPolicy | None = None) -> str:
+def pick_worst(candidates: Iterable[str], policy: ConsensusPolicy | None = None) -> WeatherCode:
     """Select the most severe prognosis from a list of candidates."""
     ranking = (
         policy.prognosis_ranking
         if policy
-        else ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
+        else (
+            WeatherCode.STORM, 
+            WeatherCode.SNOW, 
+            WeatherCode.RAIN, 
+            WeatherCode.CLOUDY, 
+            WeatherCode.CLEAR
+        )
     )
     c_set = set(candidates)
     for rank in ranking:
         if rank in c_set:
-            return rank
-    return "UNKNOWN"
+            return rank # rank is WeatherCode
+    return WeatherCode.UNKNOWN
 
 @dataclass(frozen=True, slots=True)
 class ForecastWindow:
@@ -153,7 +165,7 @@ def _compute_wind_direction(records: Iterable[DailyData]) -> tuple[str, ...] | N
     directions = {r.direction for r in records if r.direction is not None}
     return tuple(sorted(directions)) if directions else None
 
-def _compute_prognosis(records: Iterable[DailyData], policy: ConsensusPolicy) -> str | None:
+def _compute_prognosis(records: Iterable[DailyData], policy: ConsensusPolicy) -> WeatherCode | None:
     """Compute prognosis mode with severity tie-breaking."""
     prognoses = (r.prognosis for r in records if r.prognosis is not None)
     counts = Counter(prognoses)
