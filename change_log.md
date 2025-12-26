@@ -93,3 +93,5 @@ Commands:
 - 2025-12-26: Moved WMO mapping to module constant and simplified `map_wmo_code`.
 - 2025-12-26: Split consensus helpers and shortened `calculate_consensus`/builder helpers for standards compliance.
 - 2025-12-26: Refactored consensus helpers for smaller functions and added TypedDict parts builder.
+- 2025-12-26: Split consensus parts into smaller helpers and added docstrings for clarity.
+- 2025-12-26: Split consensus part TypedDicts and added explicit cast for merged parts.

@@ -10,7 +10,7 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Iterable, TypedDict
+from typing import Iterable, TypedDict, cast
 from datetime import date
 from collections import Counter
 from statistics import mean, stdev
@@ -54,14 +54,24 @@ class ConsensusForecast:
     sources: list[str]
 
 
-class ConsensusParts(TypedDict):
+class TempParts(TypedDict):
     min_temp: float | None
     max_temp: float | None
+
+
+class WindParts(TypedDict):
     min_wind_kmh: float | None
     max_wind_kmh: float | None
     wind_direction: list[str] | None
+
+
+class ConditionParts(TypedDict):
     prognosis: WeatherCode | None
     rain_prob: float | None
+
+
+class ConsensusParts(TempParts, WindParts, ConditionParts):
+    pass
 
 
 _WTTR_MAPPING = (
@@ -299,7 +309,32 @@ def _condition_values(
     return (_compute_prognosis(records, policy), _compute_rain_prob(records))
 
 
-def _parts_from_values(
+def _temp_parts(min_temp: float | None, max_temp: float | None) -> TempParts:
+    """Build temperature fields for consensus DTO."""
+    return {"min_temp": min_temp, "max_temp": max_temp}
+
+
+def _wind_parts(
+    min_wind_kmh: float | None,
+    max_wind_kmh: float | None,
+    wind_direction: list[str] | None,
+) -> WindParts:
+    """Build wind fields for consensus DTO."""
+    return {
+        "min_wind_kmh": min_wind_kmh,
+        "max_wind_kmh": max_wind_kmh,
+        "wind_direction": wind_direction,
+    }
+
+
+def _condition_parts(
+    prognosis: WeatherCode | None, rain_prob: float | None
+) -> ConditionParts:
+    """Build condition fields for consensus DTO."""
+    return {"prognosis": prognosis, "rain_prob": rain_prob}
+
+
+def _consensus_dict(
     min_temp: float | None,
     max_temp: float | None,
     min_wind_kmh: float | None,
@@ -308,24 +343,23 @@ def _parts_from_values(
     prognosis: WeatherCode | None,
     rain_prob: float | None,
 ) -> ConsensusParts:
-    return {
-        "min_temp": min_temp,
-        "max_temp": max_temp,
-        "min_wind_kmh": min_wind_kmh,
-        "max_wind_kmh": max_wind_kmh,
-        "wind_direction": wind_direction,
-        "prognosis": prognosis,
-        "rain_prob": rain_prob,
-    }
+    """Combine all consensus fields into a single mapping."""
+    return cast(
+        ConsensusParts,
+        _temp_parts(min_temp, max_temp)
+        | _wind_parts(min_wind_kmh, max_wind_kmh, wind_direction)
+        | _condition_parts(prognosis, rain_prob),
+    )
 
 
 def _consensus_parts(
     records: Iterable[DailyData], policy: ConsensusPolicy
 ) -> ConsensusParts:
+    """Calculate all consensus fields for the date."""
     min_temp, max_temp = _temp_values(records, policy)
     min_wind_kmh, max_wind_kmh, wind_direction = _wind_values(records)
     prognosis, rain_prob = _condition_values(records, policy)
-    return _parts_from_values(
+    return _consensus_dict(
         min_temp,
         max_temp,
         min_wind_kmh,
@@ -334,6 +368,11 @@ def _consensus_parts(
         prognosis,
         rain_prob,
     )
+
+
+def _has_sources(sources: tuple[str, ...]) -> bool:
+    """Check if any sources provided valid data."""
+    return bool(sources)
 
 
 def _build_single_consensus(
@@ -355,12 +394,11 @@ def _forecast_if_sources(
     policy: ConsensusPolicy,
     location_name: str,
 ) -> ConsensusForecast | None:
-    return (
-        _forecast_from_parts(
-            d_str, location_name, sources, _consensus_parts(records, policy)
-        )
-        if sources
-        else None
+    """Build forecast only when sources exist."""
+    if not _has_sources(sources):
+        return None
+    return _forecast_from_parts(
+        d_str, location_name, sources, _consensus_parts(records, policy)
     )
 
 
@@ -381,11 +419,13 @@ def _consensus_iter(
     policy: ConsensusPolicy,
     location_name: str,
 ) -> Iterable[ConsensusForecast]:
+    """Yield consensus forecasts for the window."""
     grouped = _group_by_date(data)
-    for d in window.dates:
-        cf = _consensus_for_date(d, grouped, policy, location_name)
-        if cf is not None:
-            yield cf
+    return (
+        cf
+        for d in window.dates
+        if (cf := _consensus_for_date(d, grouped, policy, location_name)) is not None
+    )
 
 
 def calculate_consensus(
