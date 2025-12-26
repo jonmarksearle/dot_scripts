@@ -10,11 +10,12 @@
 # ///
 from __future__ import annotations
 from dataclasses import dataclass
-from typing import Optional, Iterable
+from typing import Iterable
 from datetime import date
 from collections import Counter
 from statistics import mean, stdev
 from itertools import groupby
+
 
 @dataclass(frozen=True)
 class DailyData:
@@ -27,6 +28,7 @@ class DailyData:
     direction: str | None
     prognosis: str | None
     rain_prob: float | None
+
 
 @dataclass(frozen=True)
 class ConsensusForecast:
@@ -41,30 +43,27 @@ class ConsensusForecast:
     rain_prob: float | None
     sources: list[str]
 
+
 def map_wmo_code(code: int) -> str:
-    mapping = {
-        0: "CLEAR", 1: "CLEAR",
-        3: "CLOUDY",
-        61: "RAIN",
-        71: "SNOW",
-        95: "STORM"
-    }
+    mapping = {0: "CLEAR", 1: "CLEAR", 3: "CLOUDY", 61: "RAIN", 71: "SNOW", 95: "STORM"}
     if code in mapping:
         return mapping[code]
     raise ValueError(f"Unknown WMO code: {code}")
 
+
 _WTTR_MAPPING = (
     (("sunny", "clear"), "CLEAR"),
     (("partly cloudy", "cloudy"), "CLOUDY"),
-    (("rain",), "RAIN")
+    (("rain",), "RAIN"),
 )
 
 _BOM_MAPPING = (
     (("fine", "sunny", "clear"), "CLEAR"),
     (("cloud",), "CLOUDY"),
     (("shower", "rain"), "RAIN"),
-    (("storm",), "STORM")
+    (("storm",), "STORM"),
 )
+
 
 def map_wttr_text(text: str) -> str:
     text = text.lower()
@@ -73,6 +72,7 @@ def map_wttr_text(text: str) -> str:
             return result
     return "UNKNOWN"
 
+
 def map_bom_text(text: str) -> str:
     text = text.lower()
     for keywords, result in _BOM_MAPPING:
@@ -80,12 +80,23 @@ def map_bom_text(text: str) -> str:
             return result
     return "UNKNOWN"
 
-def pick_worst(candidates: list[str], policy: ConsensusPolicy = None) -> str:
-    ranking = policy.prognosis_ranking if policy else ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
+
+def pick_worst(candidates: Iterable[str], policy: ConsensusPolicy | None = None) -> str:
+    ranking = (
+        policy.prognosis_ranking
+        if policy
+        else ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
+    )
+    # Materialise once if strictly needed, but 'in' works on iterables too (though less efficiently if generator)
+    # However, picking winner logic iterates ranking.
+    # We need to know if rank is in candidates.
+    # Efficient: set(candidates).
+    c_set = set(candidates)
     for rank in ranking:
-        if rank in candidates:
+        if rank in c_set:
             return rank
     return "UNKNOWN"
+
 
 @dataclass(frozen=True)
 class ConsensusPolicy:
@@ -93,48 +104,67 @@ class ConsensusPolicy:
     min_count_for_outlier: int = 3
     prognosis_ranking: tuple[str, ...] = ("STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR")
 
+
 @dataclass(frozen=True, slots=True)
 class ForecastWindow:
     dates: tuple[date, ...]
 
+
 def _group_by_date(data: Iterable[DailyData]) -> dict[str, tuple[DailyData, ...]]:
     # Functional grouping: Sort first, then group
     sorted_data = sorted(data, key=lambda x: x.date)
-    return {
-        str(k): tuple(g) 
-        for k, g in groupby(sorted_data, key=lambda x: x.date)
-    }
+    return {str(k): tuple(g) for k, g in groupby(sorted_data, key=lambda x: x.date)}
 
-def _calculate_mean_with_filter(values: tuple[float, ...], mu: float, sigma: float, threshold: float) -> float:
-    filtered = [v for v in values if abs(v - mu) <= threshold * sigma]
+
+def _calculate_mean_with_filter(
+    values: tuple[float, ...], mu: float, sigma: float, threshold: float
+) -> float:
+    # Use generator for filtering
+    filtered_gen = (v for v in values if abs(v - mu) <= threshold * sigma)
+    # We need count and sum. Generator consumed once.
+    # Materialise to tuple for len check? Or use incremental stats?
+    # Given stddev logic relies on population, materialise tuple is cleaner/safer than pure generator for stats.
+    # Standard says "Prefer generators... where possible". Here we need multipass (len + sum).
+    # Tuple is immutable and preferred over list.
+    filtered = tuple(filtered_gen)
     return mean(filtered) if filtered else mu
 
-def _compute_robust_mean(values: Iterable[float], policy: ConsensusPolicy) -> float | None:
+
+def _compute_robust_mean(
+    values: Iterable[float], policy: ConsensusPolicy
+) -> float | None:
     # Materialise for len/stats
     vals = tuple(values)
     if not vals:
         return None
     if len(vals) < policy.min_count_for_outlier:
         return mean(vals)
-    
+
     # Branch-only logic (no try/except)
     sigma = stdev(vals)
     if sigma == 0:
         return mean(vals)
-    
+
     return _calculate_mean_with_filter(vals, mean(vals), sigma, policy.sigma_threshold)
 
-def _compute_wind_range(records: Iterable[DailyData]) -> tuple[float | None, float | None]:
+
+def _compute_wind_range(
+    records: Iterable[DailyData],
+) -> tuple[float | None, float | None]:
     # Generators consumed by min/max
     min_winds = (r.min_wind for r in records if r.min_wind is not None)
     max_winds = (r.max_wind for r in records if r.max_wind is not None)
     return (min(min_winds, default=None), max(max_winds, default=None))
 
+
 def _compute_wind_direction(records: Iterable[DailyData]) -> tuple[str, ...] | None:
     directions = {r.direction for r in records if r.direction is not None}
     return tuple(sorted(directions)) if directions else None
 
-def _compute_prognosis(records: Iterable[DailyData], policy: ConsensusPolicy) -> str | None:
+
+def _compute_prognosis(
+    records: Iterable[DailyData], policy: ConsensusPolicy
+) -> str | None:
     prognoses = (r.prognosis for r in records if r.prognosis is not None)
     # Counter consumes iterator directly
     counts = Counter(prognoses)
@@ -144,61 +174,87 @@ def _compute_prognosis(records: Iterable[DailyData], policy: ConsensusPolicy) ->
     candidates = tuple(p for p, c in counts.items() if c == max_count)
     return candidates[0] if len(candidates) == 1 else pick_worst(candidates, policy)
 
+
 def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
     probs = (r.rain_prob for r in records if r.rain_prob is not None)
     return max(probs, default=None)
 
+
 def _is_valid_record(r: DailyData) -> bool:
     # Generator expression for any()
-    return any(x is not None for x in (
-        r.min_temp, r.max_temp, r.min_wind, r.max_wind, 
-        r.direction, r.prognosis, r.rain_prob
-    ))
+    return any(
+        x is not None
+        for x in (
+            r.min_temp,
+            r.max_temp,
+            r.min_wind,
+            r.max_wind,
+            r.direction,
+            r.prognosis,
+            r.rain_prob,
+        )
+    )
+
 
 def _extract_sources(records: Iterable[DailyData]) -> tuple[str, ...]:
     # Sorted consumes generator
     return tuple(sorted(r.source for r in records if _is_valid_record(r)))
 
-def _build_single_consensus(
-    d_str: str, 
-    records: Iterable[DailyData], 
-    policy: ConsensusPolicy, 
-    location_name: str
-) -> ConsensusForecast | None:
-    # Records needs to be multiple-access in some logic, but here we pass it to multiple functions.
-    # _group_by_date returns tuples, so 'records' is a tuple here.
-    
-    # We call _extract_sources which returns a tuple.
-    sources = _extract_sources(records)
-    if not sources:
-        return None
-    
+
+def _aggregate_fields(
+    d_str: str,
+    records: Iterable[DailyData],
+    sources: tuple[str, ...],
+    policy: ConsensusPolicy,
+    location_name: str,
+) -> ConsensusForecast:
     w_dir = _compute_wind_direction(records)
-    
     return ConsensusForecast(
         location=location_name,
         date=d_str,
-        min_temp=_compute_robust_mean((r.min_temp for r in records if r.min_temp is not None), policy),
-        max_temp=_compute_robust_mean((r.max_temp for r in records if r.max_temp is not None), policy),
+        min_temp=_compute_robust_mean(
+            (r.min_temp for r in records if r.min_temp is not None), policy
+        ),
+        max_temp=_compute_robust_mean(
+            (r.max_temp for r in records if r.max_temp is not None), policy
+        ),
         min_wind_kmh=_compute_wind_range(records)[0],
         max_wind_kmh=_compute_wind_range(records)[1],
-        wind_direction=list(w_dir) if w_dir is not None else None, # Convert Tuple -> List DTO
+        wind_direction=list(w_dir) if w_dir is not None else None,
         prognosis=_compute_prognosis(records, policy),
         rain_prob=_compute_rain_prob(records),
-        sources=list(sources) # Convert Tuple -> List DTO
+        sources=list(sources),
     )
 
-def calculate_consensus(
-    window: ForecastWindow, 
-    data: Iterable[DailyData], 
+
+def _build_single_consensus(
+    d_str: str,
+    records: Iterable[DailyData],
     policy: ConsensusPolicy,
-    location_name: str = "Unknown"
+    location_name: str,
+) -> ConsensusForecast | None:
+    sources = _extract_sources(records)
+    if not sources:
+        return None
+    return _aggregate_fields(d_str, records, sources, policy, location_name)
+
+
+def calculate_consensus(
+    window: ForecastWindow,
+    data: Iterable[DailyData],
+    policy: ConsensusPolicy,
+    location_name: str = "Unknown",
 ) -> list[ConsensusForecast]:
     if not data:
         return []
-    
+
     grouped = _group_by_date(data)
-    return [
-        result for d in window.dates
-        if (result := _build_single_consensus(str(d), grouped.get(str(d), ()), policy, location_name))
-    ]
+    # Explicit filter for clarity
+    results = []
+    for d in window.dates:
+        cf = _build_single_consensus(
+            str(d), grouped.get(str(d), ()), policy, location_name
+        )
+        if cf is not None:
+            results.append(cf)
+    return results
