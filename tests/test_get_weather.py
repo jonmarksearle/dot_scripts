@@ -134,7 +134,6 @@ def test__consensus__aggregation__wind_range__success(window_stub: ForecastWindo
     assert res.min_wind_kmh == 5.0
     assert res.max_wind_kmh == 30.0
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__wind_range__ignore_none__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure None values in wind are ignored for Range calculation."""
     data = mk_daily_list(base_date, {"min_w": 10, "max_w": 20}, {"min_w": None, "max_w": None})
