@@ -9,7 +9,7 @@
 # ]
 # ///
 from __future__ import annotations
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from typing import Iterable, TypedDict
 from datetime import date
 from collections import Counter
@@ -244,15 +244,8 @@ def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
 
 
 def _record_payload(r: DailyData) -> dict[str, object | None]:
-    return {
-        "min_temp": r.min_temp,
-        "max_temp": r.max_temp,
-        "min_wind": r.min_wind,
-        "max_wind": r.max_wind,
-        "direction": r.direction,
-        "prognosis": r.prognosis,
-        "rain_prob": r.rain_prob,
-    }
+    payload = asdict(r)
+    return {k: v for k, v in payload.items() if k not in ("date", "source")}
 
 
 def _record_values(payload: dict[str, object | None]) -> Iterable[object | None]:

@@ -98,3 +98,5 @@ Commands:
 - 2025-12-26: Simplified `_consensus_iter` to a clear generator loop.
 - 2025-12-26: Simplified consensus parts to merge TypedDict fragments via dict operators.
 - 2025-12-26: Refactored record validity to use payload dict values iterator.
+- 2025-12-26: Simplified `_record_payload` to use `asdict` for DailyData.
+- 2025-12-26: Excluded date/source from record payload when checking validity.
