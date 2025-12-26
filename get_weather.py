@@ -40,54 +40,66 @@ class ConsensusForecast:
     rain_prob: float | None
     sources: list[str]
 
+def map_wmo_code(code: int) -> str:
+    mapping = {
+        0: "CLEAR", 1: "CLEAR",
+        3: "CLOUDY",
+        61: "RAIN",
+        71: "SNOW",
+        95: "STORM"
+    }
+    if code in mapping:
+        return mapping[code]
+    raise ValueError(f"Unknown WMO code: {code}")
+
+def map_wttr_text(text: str) -> str:
+    text = text.lower()
+    mapping = [
+        (["sunny", "clear"], "CLEAR"),
+        (["partly cloudy", "cloudy"], "CLOUDY"),
+        (["rain"], "RAIN")
+    ]
+    for keywords, result in mapping:
+        if any(k in text for k in keywords):
+            return result
+    return "UNKNOWN"
+
+def map_bom_text(text: str) -> str:
+    text = text.lower()
+    mapping = [
+        (["fine", "sunny", "clear"], "CLEAR"),
+        (["cloud"], "CLOUDY"),
+        (["shower", "rain"], "RAIN"),
+        (["storm"], "STORM")
+    ]
+    for keywords, result in mapping:
+        if any(k in text for k in keywords):
+            return result
+    return "UNKNOWN"
+
+def pick_worst(candidates: list[str]) -> str:
+    ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
+    for rank in ranking:
+        if rank in candidates:
+            return rank
+    return "UNKNOWN"
+
 class WeatherTaxonomy:
     @staticmethod
     def map_wmo_code(code: int) -> str:
-        mapping = {
-            0: "CLEAR", 1: "CLEAR",
-            3: "CLOUDY",
-            61: "RAIN",
-            71: "SNOW",
-            95: "STORM"
-        }
-        if code in mapping:
-            return mapping[code]
-        raise ValueError(f"Unknown WMO code: {code}")
+        return map_wmo_code(code)
 
     @staticmethod
     def map_wttr_text(text: str) -> str:
-        text = text.lower()
-        mapping = [
-            (["sunny", "clear"], "CLEAR"),
-            (["partly cloudy", "cloudy"], "CLOUDY"),
-            (["rain"], "RAIN")
-        ]
-        for keywords, result in mapping:
-            if any(k in text for k in keywords):
-                return result
-        return "UNKNOWN"
+        return map_wttr_text(text)
 
     @staticmethod
     def map_bom_text(text: str) -> str:
-        text = text.lower()
-        mapping = [
-            (["fine", "sunny", "clear"], "CLEAR"),
-            (["cloud"], "CLOUDY"),
-            (["shower", "rain"], "RAIN"),
-            (["storm"], "STORM")
-        ]
-        for keywords, result in mapping:
-            if any(k in text for k in keywords):
-                return result
-        return "UNKNOWN"
+        return map_bom_text(text)
 
     @staticmethod
     def pick_worst(candidates: list[str]) -> str:
-        ranking = ["STORM", "SNOW", "RAIN", "CLOUDY", "CLEAR"]
-        for rank in ranking:
-            if rank in candidates:
-                return rank
-        return "UNKNOWN"
+        return pick_worst(candidates)
 
 class ConsensusPolicy:
     pass
@@ -149,6 +161,43 @@ def _is_valid_record(r: DailyData) -> bool:
 def _extract_sources(records: list[DailyData]) -> list[str]:
     return sorted([r.source for r in records if _is_valid_record(r)])
 
+def calculate_consensus(
+    window: ForecastWindow, 
+    data: list[DailyData], 
+    policy: ConsensusPolicy,
+    location_name: str = "Unknown"
+) -> list[ConsensusForecast]:
+    if not data:
+        return []
+    
+    grouped = _group_by_date(data)
+    
+    def build_consensus(d_str: str) -> Optional[ConsensusForecast]:
+        if d_str not in grouped:
+            return None
+        records = grouped[d_str]
+        sources = _extract_sources(records)
+        if not sources:
+            return None
+        
+        return ConsensusForecast(
+            location=location_name,
+            date=d_str,
+            min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None]),
+            max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None]),
+            min_wind_kmh=_compute_wind_range(records)[0],
+            max_wind_kmh=_compute_wind_range(records)[1],
+            wind_direction=_compute_wind_direction(records),
+            prognosis=_compute_prognosis(records),
+            rain_prob=_compute_rain_prob(records),
+            sources=sources
+        )
+
+    return [
+        cf for d in window.dates 
+        if (cf := build_consensus(str(d))) is not None
+    ]
+
 class ConsensusEngine:
     @staticmethod
     def calculate_consensus(
@@ -157,33 +206,4 @@ class ConsensusEngine:
         policy: ConsensusPolicy,
         location_name: str = "Unknown"
     ) -> list[ConsensusForecast]:
-        if not data:
-            return []
-        
-        grouped = _group_by_date(data)
-        
-        def build_consensus(d_str: str) -> Optional[ConsensusForecast]:
-            if d_str not in grouped:
-                return None
-            records = grouped[d_str]
-            sources = _extract_sources(records)
-            if not sources:
-                return None
-            
-            return ConsensusForecast(
-                location=location_name,
-                date=d_str,
-                min_temp=_compute_robust_mean([r.min_temp for r in records if r.min_temp is not None]),
-                max_temp=_compute_robust_mean([r.max_temp for r in records if r.max_temp is not None]),
-                min_wind_kmh=_compute_wind_range(records)[0],
-                max_wind_kmh=_compute_wind_range(records)[1],
-                wind_direction=_compute_wind_direction(records),
-                prognosis=_compute_prognosis(records),
-                rain_prob=_compute_rain_prob(records),
-                sources=sources
-            )
-
-        return [
-            cf for d in window.dates 
-            if (cf := build_consensus(str(d))) is not None
-        ]
+        return calculate_consensus(window, data, policy, location_name)
