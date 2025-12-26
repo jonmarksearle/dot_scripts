@@ -243,21 +243,26 @@ def _compute_rain_prob(records: Iterable[DailyData]) -> float | None:
     return max(probs, default=None)
 
 
+def _record_payload(r: DailyData) -> dict[str, object | None]:
+    return {
+        "min_temp": r.min_temp,
+        "max_temp": r.max_temp,
+        "min_wind": r.min_wind,
+        "max_wind": r.max_wind,
+        "direction": r.direction,
+        "prognosis": r.prognosis,
+        "rain_prob": r.rain_prob,
+    }
+
+
+def _record_values(payload: dict[str, object | None]) -> Iterable[object | None]:
+    """Return payload values as an iterator."""
+    return iter(payload.values())
+
+
 def _is_valid_record(r: DailyData) -> bool:
     """Check if record has at least one valid data field."""
-    return any(x is not None for x in _record_values(r))
-
-
-def _record_values(r: DailyData) -> tuple[object | None, ...]:
-    return (
-        r.min_temp,
-        r.max_temp,
-        r.min_wind,
-        r.max_wind,
-        r.direction,
-        r.prognosis,
-        r.rain_prob,
-    )
+    return any(x is not None for x in _record_values(_record_payload(r)))
 
 
 def _extract_sources(records: Iterable[DailyData]) -> tuple[str, ...]:

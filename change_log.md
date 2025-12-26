@@ -97,3 +97,4 @@ Commands:
 - 2025-12-26: Split consensus part TypedDicts and added explicit cast for merged parts.
 - 2025-12-26: Simplified `_consensus_iter` to a clear generator loop.
 - 2025-12-26: Simplified consensus parts to merge TypedDict fragments via dict operators.
+- 2025-12-26: Refactored record validity to use payload dict values iterator.
