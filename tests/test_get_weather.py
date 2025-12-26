@@ -68,9 +68,8 @@ def test__taxonomy__map_wmo__unknown_code__fail() -> None:
     with pytest.raises(ValueError, match=r"Unknown WMO code"):
         get_weather.WeatherTaxonomy.map_wmo_code(9999)
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 @pytest.mark.parametrize("code,expected", [
-    (0, "CLEAR"), (1, "CLEAR"), (3, "CLOUDY"), (61, "RAIN"), (95, "STORM")
+    (0, "CLEAR"), (1, "CLEAR"), (3, "CLOUDY"), (61, "RAIN"), (71, "SNOW"), (95, "STORM")
 ])
 def test__taxonomy__map_wmo__success(code: int, expected: str) -> None:
     """Ensure WMO codes map to standard taxonomy."""

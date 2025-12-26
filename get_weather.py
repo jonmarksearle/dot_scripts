@@ -36,6 +36,15 @@ class ConsensusForecast:
 class WeatherTaxonomy:
     @staticmethod
     def map_wmo_code(code: int) -> str:
+        mapping = {
+            0: "CLEAR", 1: "CLEAR",
+            3: "CLOUDY",
+            61: "RAIN",
+            71: "SNOW",
+            95: "STORM"
+        }
+        if code in mapping:
+            return mapping[code]
         raise ValueError(f"Unknown WMO code: {code}")
 
 class ConsensusEngine:
