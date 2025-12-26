@@ -12,6 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
 from datetime import date
+from collections import Counter
 
 @dataclass
 class DailyData:
@@ -145,12 +146,24 @@ class ConsensusEngine:
             directions = {r.direction for r in day_records if r.direction is not None}
             sorted_directions = sorted(list(directions)) if directions else None
 
+            # Prognosis Mode
+            prognoses = [r.prognosis for r in day_records if r.prognosis is not None]
+            final_prog = None
+            if prognoses:
+                counts = Counter(prognoses)
+                max_count = max(counts.values())
+                candidates = [p for p, c in counts.items() if c == max_count]
+                if len(candidates) == 1:
+                    final_prog = candidates[0]
+                else:
+                    final_prog = WeatherTaxonomy.pick_worst(candidates)
+
             # Placeholder for actual consensus math (returning dummy for now to pass this specific test)
             results.append(ConsensusForecast(
                 location="Placeholder",
                 date=d_str,
                 min_temp=avg_min_t, max_temp=avg_max_t, min_wind_kmh=abs_min_wind, max_wind_kmh=abs_max_wind,
-                wind_direction=sorted_directions, prognosis="", rain_prob=max_rain, sources=sorted(sources)
+                wind_direction=sorted_directions, prognosis=final_prog, rain_prob=max_rain, sources=sorted(sources)
             ))
             
         return results

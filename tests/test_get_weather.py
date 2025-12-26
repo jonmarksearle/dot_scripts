@@ -167,7 +167,6 @@ def test__consensus__aggregation__direction__ignore_none__success(window_stub: F
     res = get_weather.ConsensusEngine.calculate_consensus(window_stub, data, get_weather.ConsensusPolicy())[0]
     assert res.wind_direction == ["N"]
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__aggregation__prognosis__mode_and_tiebreaker__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure prognosis uses Mode with a severity tie-breaker."""
     # Tie between CLEAR and STORM. STORM should win.
