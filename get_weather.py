@@ -421,11 +421,10 @@ def _consensus_iter(
 ) -> Iterable[ConsensusForecast]:
     """Yield consensus forecasts for the window."""
     grouped = _group_by_date(data)
-    return (
-        cf
-        for d in window.dates
-        if (cf := _consensus_for_date(d, grouped, policy, location_name)) is not None
-    )
+    for d in window.dates:
+        cf = _consensus_for_date(d, grouped, policy, location_name)
+        if cf is not None:
+            yield cf
 
 
 def calculate_consensus(
