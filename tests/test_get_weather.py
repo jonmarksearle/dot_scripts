@@ -105,7 +105,6 @@ def test__taxonomy__severity_ranking__success(candidates: list[str], expected: s
 def test__consensus__empty_input__success(window_stub: ForecastWindowStub) -> None:
     assert get_weather.ConsensusEngine.calculate_consensus(window_stub, [], get_weather.ConsensusPolicy()) == []
 
-@pytest.mark.skip(reason="TDD TipToe 0")
 def test__consensus__date_omission__all_fields_none__success(window_stub: ForecastWindowStub, base_date: date) -> None:
     """Ensure a date is OMITTED if all its reports contain ONLY None values."""
     data = mk_daily_list(base_date, {"min_t": 20}, {"offset": 1, "all_none": True})
