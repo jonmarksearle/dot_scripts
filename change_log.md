@@ -190,3 +190,11 @@ Commands:
 2026-01-01: just test
 2026-01-01: git add tests/test_treeg.py treeg.py change_log.md
 2026-01-01: git commit -m "treeg: handle dirty non-iterable forest"
+2026-01-01: cat << 'EOF' > /home/jon/Work/.scripts/treeg.py (implement tree cleaning logic and helpers)
+2026-01-01: python - <<'PY' ... removed @skip markers and skip alias from tests/test_treeg.py
+2026-01-01: just format
+2026-01-01: apply_patch (add mypy ignore for iter call in treeg.py)
+2026-01-01: just lint
+2026-01-01: just test
+2026-01-01: git add tests/test_treeg.py treeg.py change_log.md
+2026-01-01: git commit -m "treeg: build cleaned tree and unskip tests"

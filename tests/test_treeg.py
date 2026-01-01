@@ -4,8 +4,6 @@ import pytest
 
 from treeg import Node, build_tree_clean, build_tree_dirty
 
-skip = pytest.mark.skip(reason="tdd")
-
 
 def n(name: str, *children: Node) -> Node:
     return Node(name, tuple(children))
@@ -274,7 +272,6 @@ def test__build_tree_dirty__forest_not_iterable__fail(forest: object) -> None:
         build_tree_dirty(forest)
 
 
-@skip
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
 def test__build_tree_clean__forest_contains_non_node__fail(
     forest: tuple[object, ...],
@@ -283,7 +280,6 @@ def test__build_tree_clean__forest_contains_non_node__fail(
         build_tree_clean(forest)
 
 
-@skip
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
 def test__build_tree_dirty__forest_contains_non_node__fail(
     forest: tuple[object, ...],
@@ -292,7 +288,6 @@ def test__build_tree_dirty__forest_contains_non_node__fail(
         build_tree_dirty(forest)
 
 
-@skip
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_INVALID_CHILDREN, ids=["child-str", "child-none"]
 )
@@ -303,7 +298,6 @@ def test__build_tree_clean__children_contains_non_node__fail(
         build_tree_clean(forest)
 
 
-@skip
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_INVALID_CHILDREN, ids=["child-str", "child-none"]
 )
@@ -314,7 +308,6 @@ def test__build_tree_dirty__children_contains_non_node__fail(
         build_tree_dirty(forest)
 
 
-@skip
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_NON_STR_NAME, ids=["name-int", "name-none"]
 )
@@ -323,7 +316,6 @@ def test__build_tree_clean__name_not_str__fail(forest: tuple[Node, ...]) -> None
         build_tree_clean(forest)
 
 
-@skip
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_NON_STR_NAME, ids=["name-int", "name-none"]
 )
@@ -332,7 +324,6 @@ def test__build_tree_dirty__name_not_str__fail(forest: tuple[Node, ...]) -> None
         build_tree_dirty(forest)
 
 
-@skip
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)
 def test__build_tree_clean__cases__success(
     forest: tuple[Node, ...], expected: list[Node]
@@ -340,7 +331,6 @@ def test__build_tree_clean__cases__success(
     assert build_tree_clean(forest) == expected
 
 
-@skip
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)
 def test__build_tree_dirty__cases__success(
     forest: tuple[Node, ...], expected: list[Node]
@@ -348,21 +338,18 @@ def test__build_tree_dirty__cases__success(
     assert build_tree_dirty(forest) == expected
 
 
-@skip
 def test__build_tree_clean__accepts_generator__success() -> None:
     forest = (n("a", n(""), n("b")), n(""))
     gen = (x for x in forest)
     assert build_tree_clean(gen) == [n("a", n("b"))]
 
 
-@skip
 def test__build_tree_dirty__accepts_generator__success() -> None:
     forest = (n("a", n(""), n("b")), n(""))
     gen = (x for x in forest)
     assert build_tree_dirty(gen) == [n("a", n("b"))]
 
 
-@skip
 def test__build_tree_clean__returns_copy_not_same_objects__success() -> None:
     child = n("c")
     root = n("a", child)
@@ -371,7 +358,6 @@ def test__build_tree_clean__returns_copy_not_same_objects__success() -> None:
     assert out[0].children[0] is not child
 
 
-@skip
 def test__build_tree_dirty__returns_copy_not_same_objects__success() -> None:
     child = n("c")
     root = n("a", child)
@@ -380,7 +366,6 @@ def test__build_tree_dirty__returns_copy_not_same_objects__success() -> None:
     assert out[0].children[0] is not child
 
 
-@skip
 def test__build_tree_clean__supports_very_deep_tree__success() -> None:
     root = chain(5000)
     out = build_tree_clean([root])
@@ -388,7 +373,6 @@ def test__build_tree_clean__supports_very_deep_tree__success() -> None:
     assert_chain(out[0], 5000)
 
 
-@skip
 def test__build_tree_dirty__supports_very_deep_tree__success() -> None:
     root = chain(5000)
     out = build_tree_dirty([root])
@@ -396,11 +380,9 @@ def test__build_tree_dirty__supports_very_deep_tree__success() -> None:
     assert_chain(out[0], 5000)
 
 
-@skip
 def test__build_tree_clean__excluded_parent_drops_subtree__success() -> None:
     assert build_tree_clean([n("", n("ok"))]) == []
 
 
-@skip
 def test__build_tree_dirty__excluded_parent_drops_subtree__success() -> None:
     assert build_tree_dirty([n("", n("ok"))]) == []
