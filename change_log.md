@@ -133,3 +133,17 @@ Commands:
 - git commit -m "Track treeg review round 1-2"
 2026-01-02T09:33:23+11:00
 - git add change_log.md (restage after logging)
+
+## '
+
+- note: previous change_log entry "## '" is incomplete due to an aborted heredoc; ignore it.
+
+## 2026-01-02T09:37:37+11:00
+- Added .scripts/tests/test_treeg.py.review.3.md (Test Reviewer round 3; verified commit 573587a and recommended invalid-input TypeError contract).
+2026-01-02T09:41:41+11:00
+- apply_patch /home/jon/Work/.scripts/tests/test_treeg.py (add failure-case params and tests per contract)
+2026-01-02T09:41:57+11:00
+- wrote /home/jon/Work/.scripts/tests/test_treeg.py.review.3.response.md
+2026-01-02T09:42:12+11:00
+- git add change_log.md tests/test_treeg.py tests/test_treeg.py.review.3.md tests/test_treeg.py.review.3.response.md
+- git commit -m "Add treeg failure tests"
