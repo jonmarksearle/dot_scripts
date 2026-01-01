@@ -102,3 +102,34 @@ Commands:
 - 2025-12-26: Excluded date/source from record payload when checking validity.
 - 2025-12-26: Moved record payload to DailyData method and reordered consensus helpers; tightened robust mean filtering.
 - 2025-12-26: Moved record validity to DailyData property, hoisted _record_values, and renamed date string args.
+
+## $ts
+- Added `.scripts/tests/test_treeg.py.review.1.md` (Test Reviewer notes for `test_treeg.py`).
+2026-01-01T00:00:00Z
+- apply_patch /home/jon/Work/.scripts/tests/test_treeg.py (add CASE_IDS, symmetry tests, helper for deep-tree check)
+2026-01-01T00:00:00Z
+- wrote /home/jon/Work/.scripts/tests/test_treeg.py.review.1.response.md
+2026-01-01T00:00:00Z
+- apply_patch /home/jon/Work/.scripts/tests/test_treeg.py (add assert_chain helper, refactor deep-tree tests)
+2026-01-01T00:00:00Z
+- git add tests/test_treeg.py
+- git commit -m "Refine tree filter tests"
+
+## 2026-01-02T09:25:53+11:00
+- Added  (reviewed author response + updated ).
+
+## 2026-01-02T09:26:11+11:00
+- Added `.scripts/tests/test_treeg.py.review.2.md` (reviewed author response + updated `test_treeg.py`).
+- Note: previous log entry (2026-01-02T09:25:53+11:00) is incomplete due to shell backtick expansion; ignore it.
+2026-01-02T09:32:09+11:00
+- wrote /home/jon/Work/.scripts/tests/test_treeg.py.review.2.response.md
+2026-01-02T09:32:09+11:00
+- note: prior change_log entries with placeholders/incomplete text left intact (append-only rule); future entries use real timestamps.
+2026-01-02T09:32:43+11:00
+- git add change_log.md tests/test_treeg.py.review.1.md tests/test_treeg.py.review.1.response.md tests/test_treeg.py.review.2.md tests/test_treeg.py.review.2.response.md
+2026-01-02T09:33:00+11:00
+- git add change_log.md
+2026-01-02T09:33:23+11:00
+- git commit -m "Track treeg review round 1-2"
+2026-01-02T09:33:23+11:00
+- git add change_log.md (restage after logging)
