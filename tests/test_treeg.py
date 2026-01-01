@@ -268,7 +268,6 @@ def test__build_tree_clean__forest_not_iterable__fail(forest: object) -> None:
         build_tree_clean(forest)
 
 
-@skip
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
 def test__build_tree_dirty__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):

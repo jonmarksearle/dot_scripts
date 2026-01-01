@@ -180,3 +180,13 @@ Commands:
 2026-01-01: just test
 2026-01-01: git add change_log.md tests/test_treeg.py treeg.py
 2026-01-01: git commit -m "treeg: handle non-iterable forest"
+2026-01-01: just test
+2026-01-01: apply_patch (remove @skip for test__build_tree_dirty__forest_not_iterable__fail)
+2026-01-01: just test
+2026-01-01: apply_patch (add minimal build_tree_dirty iterability handling)
+2026-01-01: just test
+2026-01-01: just format
+2026-01-01: just lint
+2026-01-01: just test
+2026-01-01: git add tests/test_treeg.py treeg.py change_log.md
+2026-01-01: git commit -m "treeg: handle dirty non-iterable forest"

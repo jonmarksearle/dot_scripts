@@ -23,4 +23,5 @@ def build_tree_clean(forest: object) -> list[Node]:
 
 
 def build_tree_dirty(forest: object) -> list[Node]:
-    raise NotImplementedError
+    _iter_forest(forest)
+    return []
