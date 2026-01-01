@@ -147,3 +147,11 @@ Commands:
 2026-01-02T09:42:12+11:00
 - git add change_log.md tests/test_treeg.py tests/test_treeg.py.review.3.md tests/test_treeg.py.review.3.response.md
 - git commit -m "Add treeg failure tests"
+
+## 2026-01-02T09:46:08+11:00
+- Added `.scripts/tests/test_treeg.py.review.4.md` (reviewed author response + commit 6df70aa; accepted failure tests + ordering).
+2026-01-02T09:49:28+11:00
+- wrote /home/jon/Work/.scripts/tests/test_treeg.py.review.4.response.md
+2026-01-02T09:49:37+11:00
+- git add change_log.md tests/test_treeg.py.review.4.md tests/test_treeg.py.review.4.response.md
+- git commit -m "Respond to treeg review round 4"
