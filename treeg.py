@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 
 
-type Frame = tuple["Node", tuple["Node", ...], int, tuple["Node", ...]]
+type Frame = tuple["Node", tuple[object, ...], int, tuple["Node", ...]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -13,33 +13,32 @@ class Node:
     children: tuple["Node", ...] = ()
 
 
-def _iter_forest(forest: object) -> Iterable[object]:
-    try:
-        return iter(forest)  # type: ignore[call-overload]
-    except TypeError as exc:
-        raise TypeError from exc
+def _iter_forest(forest: object) -> Iterator[object]:
+    if not isinstance(forest, Iterable):
+        raise TypeError("forest must be iterable")
+    return iter(forest)
 
 
 def _validate_name(node: Node) -> None:
     if not isinstance(node.name, str):
-        raise TypeError
+        raise TypeError("node name must be str")
 
 
 def _ensure_node(value: object) -> Node:
     if not isinstance(value, Node):
-        raise TypeError
+        raise TypeError("expected Node")
     _validate_name(value)
     return value
 
 
-def _children_tuple(node: Node) -> tuple[Node, ...]:
+def _children_tuple(node: Node) -> tuple[object, ...]:
     try:
         return tuple(node.children)
     except TypeError as exc:
-        raise TypeError from exc
+        raise TypeError("children must be iterable") from exc
 
 
-def _iter_nodes(forest: object) -> Iterable[Node]:
+def _iter_nodes(forest: object) -> Iterator[Node]:
     return (_ensure_node(node) for node in _iter_forest(forest))
 
 
@@ -57,20 +56,41 @@ def _push_child(stack: tuple[Frame, ...], child: Node) -> tuple[Frame, ...]:
     return (*stack[:-1], updated_parent, frame)
 
 
+def _initial_stack(root: Node) -> tuple[Frame, ...]:
+    return ((root, _children_tuple(root), 0, ()),)
+
+
+def _finalise_frame(frame: Frame) -> Node | None:
+    node, _children, _index, cleaned = frame
+    if node.name == "":
+        return None
+    return Node(node.name, cleaned)
+
+
+def _pop_frame(
+    stack: tuple[Frame, ...], built: Node | None
+) -> tuple[tuple[Frame, ...], Node | None]:
+    remainder = stack[:-1]
+    if not remainder:
+        return (), built
+    return (_attach_child(remainder, built), None)
+
+
+def _step_stack(stack: tuple[Frame, ...]) -> tuple[tuple[Frame, ...], Node | None]:
+    node, children, index, _cleaned = stack[-1]
+    if index >= len(children):
+        built = _finalise_frame(stack[-1])
+        return _pop_frame(stack, built)
+    child = _ensure_node(children[index])
+    return (_push_child(stack, child), None)
+
+
 def _clean_node(root: Node) -> Node | None:
-    _validate_name(root)
-    stack: tuple[Frame, ...] = ((root, _children_tuple(root), 0, ()),)
+    stack = _initial_stack(root)
     while stack:
-        node, children, index, cleaned = stack[-1]
-        if index >= len(children):
-            built = None if node.name == "" else Node(node.name, cleaned)
-            stack = stack[:-1]
-            if not stack:
-                return built
-            stack = _attach_child(stack, built)
-            continue
-        child = _ensure_node(children[index])
-        stack = _push_child(stack, child)
+        stack, built = _step_stack(stack)
+        if built is not None or not stack:
+            return built
     return None
 
 
@@ -80,8 +100,10 @@ def _build_tree(forest: object) -> list[Node]:
 
 
 def build_tree_clean(forest: object) -> list[Node]:
+    """Return a new tree list with empty-name nodes removed."""
     return _build_tree(forest)
 
 
 def build_tree_dirty(forest: object) -> list[Node]:
+    """Return a new tree list with empty-name nodes removed."""
     return _build_tree(forest)

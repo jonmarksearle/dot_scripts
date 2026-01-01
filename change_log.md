@@ -198,3 +198,10 @@ Commands:
 2026-01-01: just test
 2026-01-01: git add tests/test_treeg.py treeg.py change_log.md
 2026-01-01: git commit -m "treeg: build cleaned tree and unskip tests"
+- 2026-01-01: wrote review file /home/jon/Work/.scripts/treeg.review.1.md
+2026-01-01T00:00:00Z apply_patch update treeg.py (typing, helpers, docstrings, errors)
+2026-01-01T00:00:00Z write treeg.review.1.response.md
+2026-01-01T00:00:00Z just format
+2026-01-01T00:00:00Z git add -A
+2026-01-01T00:00:00Z git add -A (final)
+2026-01-01T00:00:00Z git commit -m "treeg: tighten typing and helpers"
