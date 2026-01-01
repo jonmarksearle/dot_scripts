@@ -205,3 +205,12 @@ Commands:
 2026-01-01T00:00:00Z git add -A
 2026-01-01T00:00:00Z git add -A (final)
 2026-01-01T00:00:00Z git commit -m "treeg: tighten typing and helpers"
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.2.md
+2026-01-01T00:00:00Z write treeg.review.2.response.md
+2026-01-01T00:00:00Z apply_patch update treeg.py (public typing, docstrings)
+2026-01-01T00:00:00Z apply_patch update tests/test_treeg.py (casts for typing)
+2026-01-01T00:00:00Z just format
+2026-01-01T00:00:00Z just lint
+2026-01-01T00:00:00Z just test
+2026-01-01T00:00:00Z git add -A
+2026-01-01T00:00:00Z git commit -m "treeg: document contract and tighten typing"

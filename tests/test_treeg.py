@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
+from typing import cast
+
 import pytest
 
 from treeg import Node, build_tree_clean, build_tree_dirty
@@ -263,13 +266,13 @@ FORESTS_WITH_NON_STR_NAME: tuple[tuple[Node, ...], ...] = (
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
 def test__build_tree_clean__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(forest)
+        build_tree_clean(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
 def test__build_tree_dirty__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(forest)
+        build_tree_dirty(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
@@ -277,7 +280,7 @@ def test__build_tree_clean__forest_contains_non_node__fail(
     forest: tuple[object, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(forest)
+        build_tree_clean(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
@@ -285,7 +288,7 @@ def test__build_tree_dirty__forest_contains_non_node__fail(
     forest: tuple[object, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(forest)
+        build_tree_dirty(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize(
@@ -295,7 +298,7 @@ def test__build_tree_clean__children_contains_non_node__fail(
     forest: tuple[Node, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(forest)
+        build_tree_clean(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize(
@@ -305,7 +308,7 @@ def test__build_tree_dirty__children_contains_non_node__fail(
     forest: tuple[Node, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(forest)
+        build_tree_dirty(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize(
@@ -313,7 +316,7 @@ def test__build_tree_dirty__children_contains_non_node__fail(
 )
 def test__build_tree_clean__name_not_str__fail(forest: tuple[Node, ...]) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(forest)
+        build_tree_clean(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize(
@@ -321,7 +324,7 @@ def test__build_tree_clean__name_not_str__fail(forest: tuple[Node, ...]) -> None
 )
 def test__build_tree_dirty__name_not_str__fail(forest: tuple[Node, ...]) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(forest)
+        build_tree_dirty(cast(Iterable[Node], forest))
 
 
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)

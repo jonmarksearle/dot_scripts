@@ -99,11 +99,19 @@ def _build_tree(forest: object) -> list[Node]:
     return [node for node in cleaned if node is not None]
 
 
-def build_tree_clean(forest: object) -> list[Node]:
-    """Return a new tree list with empty-name nodes removed."""
+def build_tree_clean(forest: Iterable[Node]) -> list[Node]:
+    """
+    Return new nodes with empty-name parents removed, dropping their descendants.
+
+    The returned nodes are newly constructed (no object identity reuse).
+    """
     return _build_tree(forest)
 
 
-def build_tree_dirty(forest: object) -> list[Node]:
-    """Return a new tree list with empty-name nodes removed."""
+def build_tree_dirty(forest: Iterable[Node]) -> list[Node]:
+    """
+    Alias for build_tree_clean, kept for API compatibility.
+
+    Removes empty-name parents, drops their descendants, and returns new nodes.
+    """
     return _build_tree(forest)
