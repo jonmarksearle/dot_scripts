@@ -155,3 +155,8 @@ Commands:
 2026-01-02T09:49:37+11:00
 - git add change_log.md tests/test_treeg.py.review.4.md tests/test_treeg.py.review.4.response.md
 - git commit -m "Respond to treeg review round 4"
+
+## 2026-01-02T09:53:51+11:00
+- git rm tests/test_treeg.py.review.{1,2,3,4}.md tests/test_treeg.py.review.{1,2,3,4}.response.md
+- git add change_log.md
+- git commit -m "Remove treeg review artifacts"
