@@ -160,3 +160,23 @@ Commands:
 - git rm tests/test_treeg.py.review.{1,2,3,4}.md tests/test_treeg.py.review.{1,2,3,4}.response.md
 - git add change_log.md
 - git commit -m "Remove treeg review artifacts"
+2026-01-01: python - <<'PY' ... updated tests/test_treeg.py to use treeg import and add @skip markers
+2026-01-01: cat << 'EOF' > /home/jon/Work/.scripts/treeg.py (added Node stub and build_tree_* placeholders)
+2026-01-01: just test
+2026-01-01: apply_patch (add missing @skip markers in tests/test_treeg.py)
+2026-01-01: just test
+2026-01-01: apply_patch (remove first @skip for test__build_tree_clean__forest_not_iterable__fail)
+2026-01-01: just test
+2026-01-01: apply_patch (add _iter_forest and minimal build_tree_clean handling)
+2026-01-01: just test
+2026-01-01: just format
+2026-01-01: apply_patch (relax treeg.py type hints for Node fields and build_tree_* args)
+2026-01-01: just format
+2026-01-01: apply_patch (restore strict Node types and accept object inputs in treeg.py)
+2026-01-01: apply_patch (add mypy ignores for intentional invalid Node constructions)
+2026-01-01: just format
+2026-01-01: apply_patch (adjust mypy ignore for iter in treeg.py)
+2026-01-01: just lint
+2026-01-01: just test
+2026-01-01: git add change_log.md tests/test_treeg.py treeg.py
+2026-01-01: git commit -m "treeg: handle non-iterable forest"
