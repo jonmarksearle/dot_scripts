@@ -305,3 +305,6 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") just format
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") just lint
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") just test
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Add wide-root regression test"
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A (stage change_log)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
