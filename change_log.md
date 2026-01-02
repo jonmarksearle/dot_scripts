@@ -270,3 +270,9 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: remove build_tree alias"
+
+## 2026-01-02 01:28 - Remove treeg.review files from tracking, add treeg.alt.py
+- Removed all treeg.review.*.md and treeg.review.*.response.md files from git tracking (kept in work tree)
+- Added treeg.review.*.md pattern to .gitignore
+- Added treeg.alt.py to git repo
+- Updated .gitignore and change_log.md

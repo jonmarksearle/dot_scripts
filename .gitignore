@@ -1,1 +1,3 @@
-*.pyctreeg.review.*.md
+*.pyc
+__pycache__/
+tests/__pycache__/
