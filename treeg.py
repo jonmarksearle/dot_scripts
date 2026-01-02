@@ -1,9 +1,10 @@
 """
-Clean a forest of Node by removing empty-name nodes and dropping descendants.
+Clean a forest of Node by removing empty-name parents and dropping descendants.
 
 Uses an explicit stack to avoid recursion depth limits on very deep trees.
-Outputs newly constructed Nodes (no identity reuse). build_tree_dirty exists as
-an alias for API compatibility/teaching.
+Outputs newly constructed Nodes (no identity reuse).
+Raises TypeError for non-iterable forests, non-Node elements, and invalid Node
+shapes (non-str names or non-iterable children).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ class Node:
 
 
 def _iter_forest(forest: object) -> Iterator[object]:
+    """Defensive guard for non-iterable forests with a consistent TypeError."""
     if not isinstance(forest, Iterable):
         raise TypeError("forest must be iterable")
     return iter(forest)
@@ -46,7 +48,7 @@ def _children_tuple(node: Node) -> tuple[object, ...]:
         raise TypeError("children must be iterable") from exc
 
 
-def _iter_nodes(forest: object) -> Iterator[Node]:
+def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
     return (_ensure_node(node) for node in _iter_forest(forest))
 
 
@@ -129,24 +131,15 @@ def _clean_node(root: Node) -> Node | None:
     return None
 
 
-def _build_tree(forest: object) -> list[Node]:
+def _build_tree(forest: Iterable[Node]) -> list[Node]:
     cleaned = (_clean_node(node) for node in _iter_nodes(forest))
     return [node for node in cleaned if node is not None]
 
 
-def build_tree_clean(forest: Iterable[Node]) -> list[Node]:
+def build_tree(forest: Iterable[Node]) -> list[Node]:
     """
     Return new nodes with empty-name parents removed, dropping their descendants.
 
     The returned nodes are newly constructed (no object identity reuse).
-    """
-    return _build_tree(forest)
-
-
-def build_tree_dirty(forest: Iterable[Node]) -> list[Node]:
-    """
-    Alias for build_tree_clean, kept for API compatibility.
-
-    Removes empty-name parents, drops their descendants, and returns new nodes.
     """
     return _build_tree(forest)

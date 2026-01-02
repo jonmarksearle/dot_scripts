@@ -245,3 +245,13 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: document invariants"
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.6.md
+2026-01-02T00:00:00Z edit tests/test_treeg.py (rename build_tree* to build_tree)
+2026-01-02T00:00:00Z apply_patch update tests/test_treeg.py (remove duplicate build_tree tests)
+2026-01-02T00:00:00Z apply_patch update treeg.py (replace public API with build_tree)
+2026-01-02T00:00:00Z write treeg.review.6.response.md
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: collapse public API"
