@@ -31,6 +31,8 @@ console = Console()
 
 @dataclass(frozen=True)
 class FunctionInfo:
+    """Location info for a defined function."""
+
     qualname: str
     lineno: int
     end_lineno: int
@@ -40,10 +42,12 @@ class FunctionInfo:
 
 
 def _pyver() -> str:
+    """Return the running Python version string."""
     return sys.version.split()[0]
 
 
 def _pkgver(name: str) -> str:
+    """Return the installed version of a package, or 'unknown'."""
     try:
         return version(name)
     except PackageNotFoundError:
@@ -51,20 +55,24 @@ def _pkgver(name: str) -> str:
 
 
 def _end(n: ast.AST) -> int:
+    """Return the end line number of an AST node."""
     return getattr(n, "end_lineno", getattr(n, "lineno", 0))
 
 
 def _qname(prefix: tuple[str, ...], name: str) -> str:
+    """Join parent names with the current name."""
     return ".".join((*prefix, name)) if prefix else name
 
 
 def _is_named(n: ast.AST) -> bool:
+    """Check if node introduces a new naming scope (func/class)."""
     return isinstance(n, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
 
 
 def _child_pairs(
     node: ast.AST, parents: tuple[str, ...]
 ) -> list[tuple[ast.AST, tuple[str, ...]]]:
+    """Yield child nodes paired with their updated parentage."""
     if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
         next_parents = (*parents, node.name)
     else:
@@ -73,6 +81,7 @@ def _child_pairs(
 
 
 def _walk_with_parents(root: ast.AST) -> Iterator[tuple[ast.AST, tuple[str, ...]]]:
+    """Iterate over nodes while tracking their fully qualified parent path."""
     stack: list[tuple[ast.AST, tuple[str, ...]]] = [(root, ())]
     while stack:
         node, parents = stack.pop()
@@ -81,6 +90,7 @@ def _walk_with_parents(root: ast.AST) -> Iterator[tuple[ast.AST, tuple[str, ...]
 
 
 def _collect(tree: ast.AST) -> list[FunctionInfo]:
+    """Collect all functions from the AST, sorted by line number."""
     funcs = (
         FunctionInfo(_qname(parents, n.name), n.lineno, _end(n))
         for n, parents in _walk_with_parents(tree)
@@ -90,16 +100,19 @@ def _collect(tree: ast.AST) -> list[FunctionInfo]:
 
 
 def _read(path: Path) -> ast.AST:
+    """Parse the file content into an AST."""
     return ast.parse(path.read_text(encoding="utf-8"))
 
 
 def _ensure_file(path: Path) -> None:
+    """Exit with error if path is not a valid file."""
     if not path.exists() or not path.is_file():
         typer.secho(f"Not a file: {path}", fg=typer.colors.RED)
         raise typer.Exit(2)
 
 
 def _render(funcs: Iterable[FunctionInfo], src: Path) -> None:
+    """Render the function list as a rich table."""
     table = Table(title=f"Functions in {src}")
     table.add_column("Function")
     table.add_column("Lines", justify="right")
@@ -112,6 +125,7 @@ def _render(funcs: Iterable[FunctionInfo], src: Path) -> None:
 
 
 def _render_env() -> None:
+    """Print version info for Python and key dependencies."""
     console.print(
         f"[dim]Python {_pyver()} | typer {_pkgver('typer')} | rich {_pkgver('rich')}[/dim]"
     )

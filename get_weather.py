@@ -19,6 +19,8 @@ from enum import StrEnum
 
 
 class WeatherCode(StrEnum):
+    """Standardized weather codes for cross-source comparison."""
+
     CLEAR = "CLEAR"
     CLOUDY = "CLOUDY"
     RAIN = "RAIN"
@@ -37,6 +39,8 @@ def _record_values(payload: dict[str, object | None]) -> Iterable[object | None]
 
 @dataclass(frozen=True)
 class DailyData:
+    """A single day's weather record from one source."""
+
     date: date
     source: str
     min_temp: float | None
@@ -48,6 +52,7 @@ class DailyData:
     rain_prob: float | None
 
     def get_payload(self) -> dict[str, object | None]:
+        """Return a dictionary of the data fields (excluding date/source)."""
         payload = asdict(self)
         return {k: v for k, v in payload.items() if k not in ("date", "source")}
 
@@ -59,6 +64,8 @@ class DailyData:
 
 @dataclass(frozen=True)
 class ConsensusForecast:
+    """A consensus forecast for a specific location and date."""
+
     location: str
     date: str
     min_temp: float | None
@@ -72,6 +79,8 @@ class ConsensusForecast:
 
 
 class ConsensusParts(TypedDict, total=False):
+    """TypedDict for partial consensus data construction."""
+
     min_temp: float | None
     max_temp: float | None
     min_wind_kmh: float | None
@@ -139,6 +148,8 @@ def map_bom_text(text: str) -> WeatherCode:
 
 @dataclass(frozen=True)
 class ConsensusPolicy:
+    """Configuration for statistical aggregation and filtering."""
+
     sigma_threshold: float = 1.5
     min_count_for_outlier: int = 3
     prognosis_ranking: tuple[WeatherCode, ...] = (
@@ -151,12 +162,14 @@ class ConsensusPolicy:
 
 
 def _prognosis_ranking(policy: ConsensusPolicy | None) -> tuple[WeatherCode, ...]:
+    """Return the configured or default prognosis severity ranking."""
     return policy.prognosis_ranking if policy else _DEFAULT_PROGNOSIS_RANKING
 
 
 def _first_matching(
     ranking: Iterable[WeatherCode], candidates: set[WeatherCode]
 ) -> WeatherCode:
+    """Return the first code in the ranking that appears in candidates."""
     return next((rank for rank in ranking if rank in candidates), WeatherCode.UNKNOWN)
 
 
@@ -169,6 +182,8 @@ def pick_worst(
 
 @dataclass(frozen=True, slots=True)
 class ForecastWindow:
+    """A specific range of dates to forecast."""
+
     dates: tuple[date, ...]
 
 
@@ -187,18 +202,21 @@ def _calculate_mean_with_filter(
 
 
 def _mean_or_none(vals: tuple[float, ...]) -> float | None:
+    """Return mean of values, or None if empty."""
     return mean(vals) if vals else None
 
 
 def _skip_outlier_filter(
     vals: tuple[float, ...], base: float | None, policy: ConsensusPolicy
 ) -> bool:
+    """Return True if outlier filtering should be skipped."""
     return base is None or len(vals) < policy.min_count_for_outlier
 
 
 def _filtered_or_base(
     vals: tuple[float, ...], base: float | None, policy: ConsensusPolicy
 ) -> float | None:
+    """Apply outlier filtering if variance exists, else return base mean."""
     if base is None:
         return None
     if (sigma := stdev(vals)) == 0:
@@ -235,6 +253,7 @@ def _compute_wind_direction(records: Iterable[DailyData]) -> tuple[str, ...] | N
 
 
 def _max_count_candidates(counts: Counter[WeatherCode]) -> tuple[WeatherCode, ...]:
+    """Return the codes with the highest frequency count."""
     max_count = max(counts.values())
     return tuple(p for p, c in counts.items() if c == max_count)
 
@@ -265,6 +284,7 @@ def _extract_sources(records: Iterable[DailyData]) -> tuple[str, ...]:
 def _forecast_from_parts(
     date_str: str, location_name: str, sources: tuple[str, ...], parts: ConsensusParts
 ) -> ConsensusForecast:
+    """Construct a ConsensusForecast from valid parts."""
     return ConsensusForecast(
         location=location_name, date=date_str, sources=list(sources), **parts
     )
@@ -273,6 +293,7 @@ def _forecast_from_parts(
 def _temp_values(
     records: Iterable[DailyData], policy: ConsensusPolicy
 ) -> ConsensusParts:
+    """Compute robust means for min/max temperatures."""
     min_temp = _compute_robust_mean(
         (r.min_temp for r in records if r.min_temp is not None), policy
     )
@@ -283,6 +304,7 @@ def _temp_values(
 
 
 def _wind_values(records: Iterable[DailyData]) -> ConsensusParts:
+    """Compute wind ranges and direction set."""
     min_wind_kmh, max_wind_kmh = _compute_wind_range(records)
     w_dir = _compute_wind_direction(records)
     return {
@@ -295,6 +317,7 @@ def _wind_values(records: Iterable[DailyData]) -> ConsensusParts:
 def _condition_values(
     records: Iterable[DailyData], policy: ConsensusPolicy
 ) -> ConsensusParts:
+    """Compute consensus prognosis and rain probability."""
     return {
         "prognosis": _compute_prognosis(records, policy),
         "rain_prob": _compute_rain_prob(records),
@@ -350,6 +373,7 @@ def _consensus_for_date(
     policy: ConsensusPolicy,
     location_name: str,
 ) -> ConsensusForecast | None:
+    """Build a forecast for a specific date from grouped data."""
     return _build_single_consensus(
         str(d), grouped.get(str(d), ()), policy, location_name
     )

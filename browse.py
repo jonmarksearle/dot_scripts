@@ -19,6 +19,8 @@ Render = Callable[[bytes], str]
 
 @dataclass(frozen=True)
 class BrowseOutcome:
+    """The result of a browse operation: url, content, or error."""
+
     url: str
     output: str | None
     error: str | None
@@ -30,6 +32,7 @@ class BrowseOutcome:
 
 
 def _iter_clean_lines(stream: Iterable[str]) -> Iterator[str]:
+    """Yield stripped, non-empty lines from the stream."""
     for raw in stream:
         cleaned = raw.strip()
         if cleaned:
@@ -37,6 +40,7 @@ def _iter_clean_lines(stream: Iterable[str]) -> Iterator[str]:
 
 
 def _validate_url(raw: str) -> str:
+    """Ensure the URL is valid and has a supported scheme."""
     parsed = parse.urlparse(raw)
     if parsed.scheme.lower() not in URL_SCHEMES:
         msg = f"Error: unsupported URL '{raw}'. Provide an http(s) URL."
@@ -45,6 +49,7 @@ def _validate_url(raw: str) -> str:
 
 
 def _default_fetch(url: str) -> bytes:
+    """Fetch URL content using urllib."""
     with request.urlopen(url, timeout=DEFAULT_TIMEOUT) as response:  # nosec B310
         status = getattr(response, "status", 200)
         if 200 <= status < 300:
@@ -100,6 +105,7 @@ def _browse_url(url: str, fetch: Fetch, render: Render) -> BrowseOutcome:
 
 
 def _outcome_for_raw(raw: str, fetch: Fetch, render: Render) -> BrowseOutcome:
+    """Process a single raw input line into an outcome."""
     try:
         url = _validate_url(raw)
     except ValueError as exc:

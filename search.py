@@ -45,6 +45,8 @@ type Engines = Sequence[SearchEngine]
 
 
 class SearchEngine(Protocol):
+    """Interface for a search engine backend."""
+
     name: str
 
     def build_url(self, query: str) -> str: ...  # ...
@@ -53,16 +55,21 @@ class SearchEngine(Protocol):
 
 
 class _BaseParser(HTMLParser):
+    """Base HTML parser that collects search result links."""
+
     def __init__(self) -> None:
+        """Initialize the parser state."""
         super().__init__()
         self._queue: deque[Result] = deque()
         self._current_href: str | None = None
         self._buffer: list[str] = []
 
     def _enqueue(self, title: str, href: str) -> None:
+        """Add a result tuple to the queue."""
         self._queue.append((title, href))
 
     def _flush(self) -> None:
+        """Commit the current link buffer to the queue."""
         title = "".join(self._buffer).strip()
         if title and self._current_href:
             self._enqueue(title, self._current_href)
@@ -70,11 +77,14 @@ class _BaseParser(HTMLParser):
         self._buffer.clear()
 
     def iter_results(self) -> Iterator[Result]:
+        """Yield results from the queue as they are parsed."""
         while self._queue:
             yield self._queue.popleft()
 
 
 class _DuckDuckGoParser(_BaseParser):
+    """Parser for DuckDuckGo HTML results."""
+
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag != "a" or self._current_href is not None:
             return
@@ -104,6 +114,8 @@ def _brave_href_and_classes(
 
 
 class _BraveParser(_BaseParser):
+    """Parser for Brave Search HTML results."""
+
     TARGET_CLASSES = {"heading-serpresult", "title"}
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -200,6 +212,8 @@ def _iter_duckduckgo_topics(nodes: Iterable[object]) -> Iterator[Result]:
 
 
 class _GoogleParser(_BaseParser):
+    """Parser for Google Search HTML results."""
+
     TARGET_CLASS = "result__a"
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
@@ -222,6 +236,8 @@ class _GoogleParser(_BaseParser):
 
 
 class DuckDuckGoEngine:
+    """Engine adapter for DuckDuckGo HTML search."""
+
     name = "DuckDuckGo"
     _endpoint = "https://duckduckgo.com/html/"
 
@@ -239,6 +255,8 @@ class DuckDuckGoEngine:
 
 
 class BraveEngine:
+    """Engine adapter for Brave Search."""
+
     name = "Brave"
     _endpoint = "https://search.brave.com/search"
 
@@ -256,6 +274,8 @@ class BraveEngine:
 
 
 class BingRssEngine:
+    """Engine adapter for Bing RSS feed."""
+
     name = "Bing"
     _endpoint = "https://www.bing.com/search"
 
@@ -270,6 +290,8 @@ class BingRssEngine:
 
 
 class DuckDuckGoApiEngine:
+    """Engine adapter for DuckDuckGo Instant Answer API."""
+
     name = "DuckDuckGo API"
     _endpoint = "https://api.duckduckgo.com/"
 
@@ -290,6 +312,8 @@ class DuckDuckGoApiEngine:
 
 
 class GoogleEngine:
+    """Engine adapter for Google Search."""
+
     name = "Google"
     _endpoint = "https://www.google.com/search"
 
@@ -316,7 +340,10 @@ DEFAULT_ENGINES: Sequence[SearchEngine] = (
 
 
 class _EngineCycle:
+    """Manages the rotation of search engines."""
+
     def __init__(self, engines: Sequence[SearchEngine]) -> None:
+        """Initialize with a sequence of engines."""
         self._engines: deque[SearchEngine] = deque(engines)
 
     def next_order(self) -> Sequence[SearchEngine]:
@@ -332,6 +359,7 @@ _ENGINE_CYCLE = _EngineCycle(DEFAULT_ENGINES)
 
 
 def _is_robot_challenge(payload: str) -> bool:
+    """Detect if the response content indicates a bot block/captcha."""
     lowered = payload.lower()
     return any(token in lowered for token in _ROBOT_TOKENS)
 
@@ -340,6 +368,7 @@ _OPENER = request.build_opener(request.HTTPCookieProcessor())
 
 
 def _read_response(req: request.Request) -> str:
+    """Read response body as UTF-8 string, ignoring errors."""
     with _OPENER.open(req, timeout=DEFAULT_TIMEOUT) as response:  # nosec B310
         return response.read().decode("utf-8", errors="ignore")
 
@@ -382,6 +411,8 @@ def iter_queries(stream: Iterable[str]) -> Iterator[str]:
 
 @dataclass(frozen=True)
 class QueryOutcome:
+    """The result of a search query: formatted block or error."""
+
     query: str
     block: str | None
     error: str | None
