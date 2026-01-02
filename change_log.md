@@ -296,3 +296,6 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") just lint
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") just test
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") write treeg.review.10.response.md
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Avoid quadratic growth for wide nodes"
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A (stage change_log)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
