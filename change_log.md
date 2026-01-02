@@ -346,3 +346,9 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T10:45:06Z [Code Author] ran gates: just format && just lint && just test
 2026-01-02T10:45:11Z [Code Author] git add -A
 2026-01-02T10:45:20Z [Code Author] git commit --amend --no-edit
+2026-01-02T11:05:45Z [CodeReviewer] Wrote strict review: treeg.review.1.md (Frame→dataclass focus)
+2026-01-02T11:30:02Z [Refactorer] edit treeg.py: add Frame dataclass, eager child validation, adjust types
+2026-01-02T11:30:18Z [Refactorer] add treeg.review.1.response.md
+2026-01-02T11:30:28Z [Refactorer] run just format
+2026-01-02T11:31:08Z [Refactorer] run git add -A
+2026-01-02T11:31:15Z [Refactorer] run git commit -m "treeg: use Frame dataclass with eager child validation"

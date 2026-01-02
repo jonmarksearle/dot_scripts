@@ -11,10 +11,7 @@ Runtime cost is linear in node count; no recursion depth limits.
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass
-
-
-type Frame = tuple["Node", tuple[object, ...], int, list["Node"]]
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True, slots=True)
@@ -23,7 +20,7 @@ class Node:
     children: tuple["Node", ...] = ()
 
 
-def _iter_forest(forest: object) -> Iterator[object]:
+def _iter_forest(forest: Iterable[Node]) -> Iterator[Node]:
     """Defensive guard for non-iterable forests with a consistent TypeError."""
     if not isinstance(forest, Iterable):
         raise TypeError("forest must be iterable")
@@ -35,22 +32,33 @@ def _validate_name(node: Node) -> None:
         raise TypeError("node name must be str")
 
 
-def _ensure_node(value: object) -> Node:
+def _ensure_node(value: Node | None) -> Node:
     if not isinstance(value, Node):
         raise TypeError("expected Node")
     _validate_name(value)
     return value
 
 
-def _children_tuple(node: Node) -> tuple[object, ...]:
+def _children_tuple(node: Node) -> tuple[Node | None, ...]:
     """Normalise children to a tuple, raising for non-iterable shapes."""
     try:
-        return tuple(node.children)
+        children = tuple(node.children)
     except TypeError as exc:
         raise TypeError("children must be iterable") from exc
+    return tuple(_ensure_node(child) for child in children)
 
 
 ## ###############################################
+
+
+@dataclass(slots=True)
+class Frame:
+    """Mutable traversal frame; list avoids O(n^2) tuple churn."""
+
+    node: Node
+    children: tuple[Node | None, ...]
+    index: int = 0
+    cleaned: list[Node] = field(default_factory=list)
 
 
 class FrameStack:
@@ -63,14 +71,7 @@ class FrameStack:
     """
 
     def __init__(self, root: Node) -> None:
-        self._stack: list[Frame] = [(root, _children_tuple(root), 0, [])]
-
-    @property
-    def last_frame(self) -> Frame:
-        """Top frame on the stack."""
-        if not self._stack:
-            raise IndexError("Stack is empty")
-        return self._stack[-1]
+        self._stack: list[Frame] = [Frame(root, _children_tuple(root))]
 
     @property
     def is_empty(self) -> bool:
@@ -78,23 +79,29 @@ class FrameStack:
         return not self._stack
 
     @property
+    def last_frame(self) -> Frame:
+        """Top frame on the stack."""
+        if self.is_empty:
+            raise IndexError("Stack is empty")
+        return self._stack[-1]
+
+    @property
     def last_node(self) -> Node | None:
         """Cleaned node from the last frame, or None if dropped."""
-        node, _children, _index, cleaned = self.last_frame
-        if node.name == "":
+        frame = self.last_frame
+        if frame.node.name == "":
             return None
-        return Node(node.name, tuple(cleaned))
+        return Node(frame.node.name, tuple(frame.cleaned))
 
     def push_child(self, child: Node) -> None:
-        node, children, index, cleaned = self.last_frame
-        self._stack[-1] = (node, children, index + 1, cleaned)
-        self._stack.append((child, _children_tuple(child), 0, []))
+        frame = self.last_frame
+        frame.index += 1
+        self._stack.append(Frame(child, _children_tuple(child)))
 
     def attach_child(self, child: Node | None) -> None:
         if child is None:
             return
-        _node, _children, _index, cleaned = self.last_frame
-        cleaned.append(child)
+        self.last_frame.cleaned.append(child)
 
     def pop_frame(self, built: Node | None) -> Node | None:
         self._stack.pop()
@@ -106,11 +113,11 @@ class FrameStack:
     def step(self) -> Node | None:
         if self.is_empty:
             return None
-        node, children, index, _cleaned = self.last_frame
-        if index >= len(children):
+        frame = self.last_frame
+        if frame.index >= len(frame.children):
             built = self.last_node
             return self.pop_frame(built)
-        child = _ensure_node(children[index])
+        child = _ensure_node(frame.children[frame.index])
         self.push_child(child)
         return None
 
