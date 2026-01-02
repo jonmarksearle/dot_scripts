@@ -264,3 +264,7 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: rename to clean_tree"
+2026-01-02T00:00:00Z apply_patch update treeg.py (drop build_tree, rename _build_tree)
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test

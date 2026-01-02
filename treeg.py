@@ -132,7 +132,7 @@ def _clean_node(root: Node) -> Node | None:
     return None
 
 
-def _build_tree(forest: Iterable[Node]) -> list[Node]:
+def _clean_tree(forest: Iterable[Node]) -> list[Node]:
     cleaned = (_clean_node(node) for node in _iter_nodes(forest))
     return [node for node in cleaned if node is not None]
 
@@ -143,9 +143,4 @@ def clean_tree(forest: Iterable[Node]) -> list[Node]:
 
     The returned nodes are newly constructed (no object identity reuse).
     """
-    return _build_tree(forest)
-
-
-def build_tree(forest: Iterable[Node]) -> list[Node]:
-    """Deprecated alias for clean_tree."""
-    return clean_tree(forest)
+    return _clean_tree(forest)
