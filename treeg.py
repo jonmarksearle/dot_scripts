@@ -13,7 +13,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 
 
-type Frame = tuple["Node", tuple[object, ...], int, tuple["Node", ...]]
+type Frame = tuple["Node", tuple[object, ...], int, list["Node"]]
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,14 +55,14 @@ def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
 def _attach_child(stack: list[Frame], child: Node | None) -> None:
     if child is None:
         return
-    node, children, index, cleaned = stack[-1]
-    stack[-1] = (node, children, index, (*cleaned, child))
+    _node, _children, _index, cleaned = stack[-1]
+    cleaned.append(child)
 
 
 def _push_child(stack: list[Frame], child: Node) -> None:
     node, children, index, cleaned = stack[-1]
     stack[-1] = (node, children, index + 1, cleaned)
-    stack.append((child, _children_tuple(child), 0, ()))
+    stack.append((child, _children_tuple(child), 0, []))
 
 
 def _initial_stack(root: Node) -> list[Frame]:
@@ -75,7 +75,7 @@ def _initial_stack(root: Node) -> list[Frame]:
     - index: next child index to process
     - cleaned: already-cleaned child nodes in order
     """
-    return [(root, _children_tuple(root), 0, ())]
+    return [(root, _children_tuple(root), 0, [])]
 
 
 def _finalise_frame(frame: Frame) -> Node | None:
@@ -88,7 +88,7 @@ def _finalise_frame(frame: Frame) -> Node | None:
     node, _children, _index, cleaned = frame
     if node.name == "":
         return None
-    return Node(node.name, cleaned)
+    return Node(node.name, tuple(cleaned))
 
 
 def _pop_frame(stack: list[Frame], built: Node | None) -> Node | None:

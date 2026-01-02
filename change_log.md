@@ -286,3 +286,13 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Fix clean_tree stack performance and docs"
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A (stage change_log)
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
+- 2026-01-02: ran `just lint` for treeg review 10
+- 2026-01-02: ran `just test` for treeg review 10
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.10.md
+- 2026-01-02: updated review file /home/jon/Work/.scripts/treeg.review.10.md to incorporate peer feedback on remaining wide-node O(k^2) behaviour
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") apply_patch treeg.py: use list for cleaned children to avoid wide-node quadratic behaviour
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") just format
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") just lint
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") just test
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") write treeg.review.10.response.md
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
