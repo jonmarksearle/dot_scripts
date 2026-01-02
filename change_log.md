@@ -268,3 +268,5 @@ Commands:
 2026-01-02T00:00:00Z just format
 2026-01-02T00:00:00Z just lint
 2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: remove build_tree alias"
