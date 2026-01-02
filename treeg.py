@@ -3,8 +3,7 @@ clean_tree removes empty-name parents and drops their descendants.
 
 Uses an explicit stack to avoid recursion depth limits on very deep trees.
 Outputs newly constructed Nodes (no identity reuse).
-Raises TypeError for non-iterable forests, non-Node elements, and invalid Node
-shapes (non-str names or non-iterable children).
+Node validation happens at construction; clean_tree assumes valid Node inputs.
 Runtime cost is linear in node count; no recursion depth limits.
 """
 
@@ -19,33 +18,20 @@ class Node:
     name: str
     children: tuple["Node", ...] = ()
 
+    def __post_init__(self) -> None:
+        if not isinstance(self.name, str):
+            raise TypeError("node name must be str")
+        try:
+            children = tuple(self.children)
+        except TypeError as exc:
+            raise TypeError("children must be iterable") from exc
+        if any(not isinstance(child, Node) for child in children):
+            raise TypeError("children must be Node")
+        object.__setattr__(self, "children", children)
 
-def _iter_forest(forest: Iterable[Node]) -> Iterator[Node]:
-    """Defensive guard for non-iterable forests with a consistent TypeError."""
-    if not isinstance(forest, Iterable):
-        raise TypeError("forest must be iterable")
-    return iter(forest)
-
-
-def _validate_name(node: Node) -> None:
-    if not isinstance(node.name, str):
-        raise TypeError("node name must be str")
-
-
-def _valid_node(value: object) -> Node:
-    if not isinstance(value, Node):
-        raise TypeError("expected Node")
-    _validate_name(value)
-    return value
-
-
-def _children_tuple(node: Node) -> tuple[Node, ...]:
-    """Normalise children to a tuple, raising for non-iterable shapes."""
-    try:
-        children = tuple(node.children)
-    except TypeError as exc:
-        raise TypeError("children must be iterable") from exc
-    return tuple(_valid_node(child) for child in children)
+    @property
+    def children_tuple(self) -> tuple["Node", ...]:
+        return self.children
 
 
 ## ###############################################
@@ -70,7 +56,7 @@ class FrameStack:
     """
 
     def __init__(self, root: Node) -> None:
-        self._stack: list[Frame] = [Frame(root, _children_tuple(root))]
+        self._stack: list[Frame] = [Frame(root, root.children_tuple)]
 
     @property
     def is_empty(self) -> bool:
@@ -95,7 +81,7 @@ class FrameStack:
     def push_child(self, child: Node) -> None:
         frame = self.last_frame
         frame.index += 1
-        self._stack.append(Frame(child, _children_tuple(child)))
+        self._stack.append(Frame(child, child.children_tuple))
 
     def attach_child(self, child: Node | None) -> None:
         if child is None:
@@ -133,7 +119,7 @@ def _clean_node(root: Node) -> Node | None:
 
 
 def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
-    return (_valid_node(node) for node in _iter_forest(forest))
+    return iter(forest)
 
 
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
@@ -147,7 +133,6 @@ def clean_tree(forest: Iterable[Node]) -> list[Node]:
 
     Input: iterable of root Nodes.
     Output: list of newly constructed Nodes (no identity reuse).
-    Raises TypeError for non-iterable forests, non-Node elements, and invalid
-    Node shapes (non-str names or non-iterable children).
+    Expects valid Node inputs; validation occurs at Node construction.
     """
     return _clean_tree(forest)

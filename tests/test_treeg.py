@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
 from typing import cast
 
 import pytest
@@ -27,21 +26,6 @@ def assert_chain(root: Node, depth: int, name: str = "x") -> None:
         node = node.children[0]
     assert node.name == name
     assert node.children == ()
-
-
-def _unsafe_children(children: object) -> tuple[Node, ...]:
-    """Cast to invalid children tuple to exercise runtime guards."""
-    return cast(tuple[Node, ...], children)
-
-
-def _unsafe_name(name: object) -> str:
-    """Cast to invalid name to exercise runtime guards."""
-    return cast(str, name)
-
-
-def _unsafe_forest(value: object) -> Iterable[Node]:
-    """Cast to invalid forest to exercise runtime guards."""
-    return cast(Iterable[Node], value)
 
 
 CASES: list[tuple[tuple[Node, ...], list[Node]]] = [
@@ -266,48 +250,30 @@ CASE_IDS: list[str] = [
     "forest-root-tail",
 ]
 
-FORESTS_NOT_ITERABLE: tuple[object, ...] = (None, 1)
-FORESTS_WITH_NON_NODE: tuple[tuple[object, ...], ...] = (("x",), (None,))
-FORESTS_WITH_INVALID_CHILDREN: tuple[tuple[Node, ...], ...] = (
-    (Node("a", _unsafe_children(("x",))),),
-    (Node("a", _unsafe_children((None,))),),
-)
-FORESTS_WITH_NON_STR_NAME: tuple[tuple[Node, ...], ...] = (
-    (Node(_unsafe_name(1), ()),),
-    (Node(_unsafe_name(None), ()),),
+BAD_NAME_VALUES: tuple[object, ...] = (1, None)
+BAD_CHILDREN_VALUES: tuple[object, ...] = (
+    1,
+    ("x",),
+    (None,),
+    ("x", Node("a")),
+    (Node("a"), "x"),
 )
 
 
-@pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
-def test__clean_tree__forest_not_iterable__fail(forest: object) -> None:
+@pytest.mark.parametrize("name", BAD_NAME_VALUES, ids=["int", "none"])
+def test__Node__name_not_str__fail(name: object) -> None:
     with pytest.raises(TypeError):
-        clean_tree(_unsafe_forest(forest))
-
-
-@pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
-def test__clean_tree__forest_contains_non_node__fail(
-    forest: tuple[object, ...],
-) -> None:
-    with pytest.raises(TypeError):
-        clean_tree(_unsafe_forest(forest))
+        Node(cast(str, name))
 
 
 @pytest.mark.parametrize(
-    "forest", FORESTS_WITH_INVALID_CHILDREN, ids=["child-str", "child-none"]
+    "children",
+    BAD_CHILDREN_VALUES,
+    ids=["int", "str", "none", "str-node", "node-str"],
 )
-def test__clean_tree__children_contains_non_node__fail(
-    forest: tuple[Node, ...],
-) -> None:
+def test__Node__children_invalid__fail(children: object) -> None:
     with pytest.raises(TypeError):
-        clean_tree(_unsafe_forest(forest))
-
-
-@pytest.mark.parametrize(
-    "forest", FORESTS_WITH_NON_STR_NAME, ids=["name-int", "name-none"]
-)
-def test__clean_tree__name_not_str__fail(forest: tuple[Node, ...]) -> None:
-    with pytest.raises(TypeError):
-        clean_tree(_unsafe_forest(forest))
+        Node("a", cast(tuple[Node, ...], children))
 
 
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)

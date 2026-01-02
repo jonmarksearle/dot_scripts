@@ -360,3 +360,18 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T11:55:51Z [Refactorer] run just test
 2026-01-02T11:56:07Z [Refactorer] run git add -A
 2026-01-02T11:56:15Z [Refactorer] run git commit -m "treeg: tighten child types and runtime guard signature"
+2026-01-02T11:59:49Z [CodeReviewer] Wrote strict review: treeg.review.3.md (proposal: remove runtime guards + move validation into Node)
+2026-01-02T12:14:11Z [CodeReviewer] Updated review: treeg.review.3.md (contract change: remove runtime guard helpers; validate via Node.__post_init__ or Pydantic)
+2026-01-02T12:29:50Z [CodeReviewer] Updated review: treeg.review.3.md (added rationale against object-typed guards + concrete test rewrite guidance)
+2026-01-02T13:13:43Z [CodeReviewer] Updated review: treeg.review.3.md (typed-only contract confirmed; recommend Node.children_tuple property for indexable children)
+2026-01-02T13:15:39Z [CodeReviewer] Updated review: treeg.review.3.md (made typed-only contract non-negotiable; listed 4 clean_tree TypeError tests to delete by name)
+2026-01-02T13:17:40Z [Refactorer] edit treeg.py: move validation to Node, remove runtime guards
+2026-01-02T13:18:12Z [Refactorer] edit tests/test_treeg.py: move invalid input tests to Node construction
+2026-01-02T13:18:24Z [Refactorer] add treeg.review.3.response.md
+2026-01-02T13:18:33Z [Refactorer] run just format
+2026-01-02T13:18:44Z [Refactorer] run just lint
+2026-01-02T13:18:54Z [Refactorer] run just test
+2026-01-02T13:19:09Z [Refactorer] run git add -A
+2026-01-02T13:19:20Z [Refactorer] run git add -A (stage change_log)
+2026-01-02T13:19:44Z [Refactorer] run git add -A
+2026-01-02T13:19:44Z [Refactorer] run git commit -m "treeg: move validation to Node and update tests"
