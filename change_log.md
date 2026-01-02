@@ -214,3 +214,13 @@ Commands:
 2026-01-01T00:00:00Z just test
 2026-01-01T00:00:00Z git add -A
 2026-01-01T00:00:00Z git commit -m "treeg: document contract and tighten typing"
+- 2026-01-02: ran `.venv/bin/python -m pytest -q` for treeg review 3
+- 2026-01-02: ran `.venv/bin/python -m mypy treeg.py tests/test_treeg.py` for treeg review 3
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.3.md
+2026-01-02T00:00:00Z apply_patch update tests/test_treeg.py (unsafe helpers)
+2026-01-02T00:00:00Z write treeg.review.3.response.md
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: clarify unsafe test helpers"

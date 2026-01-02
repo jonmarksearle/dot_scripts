@@ -29,6 +29,18 @@ def assert_chain(root: Node, depth: int, name: str = "x") -> None:
     assert node.children == ()
 
 
+def _unsafe_children(children: object) -> tuple[Node, ...]:
+    return cast(tuple[Node, ...], children)
+
+
+def _unsafe_name(name: object) -> str:
+    return cast(str, name)
+
+
+def _unsafe_forest(value: object) -> Iterable[Node]:
+    return cast(Iterable[Node], value)
+
+
 CASES: list[tuple[tuple[Node, ...], list[Node]]] = [
     # 1-5: singletons
     ((n(""),), []),
@@ -254,25 +266,25 @@ CASE_IDS: list[str] = [
 FORESTS_NOT_ITERABLE: tuple[object, ...] = (None, 1)
 FORESTS_WITH_NON_NODE: tuple[tuple[object, ...], ...] = (("x",), (None,))
 FORESTS_WITH_INVALID_CHILDREN: tuple[tuple[Node, ...], ...] = (
-    (Node("a", ("x",)),),  # type: ignore[arg-type]
-    (Node("a", (None,)),),  # type: ignore[arg-type]
+    (Node("a", _unsafe_children(("x",))),),
+    (Node("a", _unsafe_children((None,))),),
 )
 FORESTS_WITH_NON_STR_NAME: tuple[tuple[Node, ...], ...] = (
-    (Node(1, ()),),  # type: ignore[arg-type]
-    (Node(None, ()),),  # type: ignore[arg-type]
+    (Node(_unsafe_name(1), ()),),
+    (Node(_unsafe_name(None), ()),),
 )
 
 
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
 def test__build_tree_clean__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(cast(Iterable[Node], forest))
+        build_tree_clean(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
 def test__build_tree_dirty__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(cast(Iterable[Node], forest))
+        build_tree_dirty(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
@@ -280,7 +292,7 @@ def test__build_tree_clean__forest_contains_non_node__fail(
     forest: tuple[object, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(cast(Iterable[Node], forest))
+        build_tree_clean(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
@@ -288,7 +300,7 @@ def test__build_tree_dirty__forest_contains_non_node__fail(
     forest: tuple[object, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(cast(Iterable[Node], forest))
+        build_tree_dirty(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
@@ -298,7 +310,7 @@ def test__build_tree_clean__children_contains_non_node__fail(
     forest: tuple[Node, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(cast(Iterable[Node], forest))
+        build_tree_clean(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
@@ -308,7 +320,7 @@ def test__build_tree_dirty__children_contains_non_node__fail(
     forest: tuple[Node, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(cast(Iterable[Node], forest))
+        build_tree_dirty(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
@@ -316,7 +328,7 @@ def test__build_tree_dirty__children_contains_non_node__fail(
 )
 def test__build_tree_clean__name_not_str__fail(forest: tuple[Node, ...]) -> None:
     with pytest.raises(TypeError):
-        build_tree_clean(cast(Iterable[Node], forest))
+        build_tree_clean(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
@@ -324,7 +336,7 @@ def test__build_tree_clean__name_not_str__fail(forest: tuple[Node, ...]) -> None
 )
 def test__build_tree_dirty__name_not_str__fail(forest: tuple[Node, ...]) -> None:
     with pytest.raises(TypeError):
-        build_tree_dirty(cast(Iterable[Node], forest))
+        build_tree_dirty(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)
