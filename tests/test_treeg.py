@@ -340,3 +340,9 @@ def test__clean_tree__supports_very_deep_tree__success() -> None:
 
 def test__clean_tree__excluded_parent_drops_subtree__success() -> None:
     assert clean_tree([n("", n("ok"))]) == []
+
+
+def test__clean_tree__very_wide_root__success() -> None:
+    root = n("root", *(n(f"c{i}") for i in range(3000)))
+    out = clean_tree([root])
+    assert out == [root]
