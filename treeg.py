@@ -1,11 +1,15 @@
 """
-clean_tree removes empty-name parents and drops their descendants.
+Tree cleaning and validation utilities.
 
-Uses an explicit stack to avoid recursion depth limits on very deep trees.
-Outputs newly constructed Nodes (no identity reuse).
-Node validation happens at construction; clean_tree assumes valid Node inputs.
-Validation runs on every Node construction and may add overhead on wide trees.
-Runtime cost is linear in node count; no recursion depth limits.
+This module provides `clean_tree`, a robust tool for filtering hierarchical data.
+It removes nodes with empty names and—crucially—prunes their entire subtree.
+It uses an explicit stack (heap memory) instead of recursion, so it won't crash
+on trees deeper than the Mariana Trench (or Python's recursion limit).
+
+Key features:
+- **Iterative Traversal**: Safe for unlimited depth.
+- **Strict Validation**: Nodes check their own types immediately.
+- **Immutability**: Returns fresh Node instances; no side-effects on input.
 """
 
 from __future__ import annotations
@@ -16,6 +20,13 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True, slots=True)
 class Node:
+    """
+    An immutable tree node with strict type enforcement.
+
+    Validation happens at the door: if you try to sneak in a non-string name
+    or a child that isn't a Node, `__post_init__` will bounce you.
+    """
+
     name: str
     children: tuple["Node", ...] = ()
 
@@ -32,12 +43,22 @@ class Node:
 
     @property
     def children_tuple(self) -> tuple["Node", ...]:
+        """A typed accessor for the children tuple."""
         return self.children
 
 
 @dataclass(slots=True)
 class Frame:
-    """Mutable traversal frame; list avoids tuple churn on wide trees."""
+    """
+    A mutable scratchpad for a single Node during traversal.
+
+    Think of this as the "Work In Progress" tray for a parent node.
+    It holds:
+    - The `node` currently being processed.
+    - Its `children` (cached as a tuple for speed).
+    - An `index` pointer to the next child to visit.
+    - A list of `cleaned` children (the good ones we're keeping).
+    """
 
     node: Node
     children: tuple[Node, ...]
@@ -47,10 +68,11 @@ class Frame:
 
 class FrameStack:
     """
-    Manages a stack of frames for post-order tree traversal.
+    The engine room for iterative traversal.
 
-    Encapsulates stack state and operations to keep traversal compact and
-    explicit.
+    This class manages the stack of `Frame` objects. It replaces the call stack
+    you'd use in recursion. It pushes children onto the stack to process them,
+    and pops them off when they're done, handing the result back to the parent.
     """
 
     def __init__(self, root: Node) -> None:
@@ -120,10 +142,16 @@ def _clean_tree(forest: Iterable[Node]) -> list[Node]:
 
 def clean_tree(forest: Iterable[Node]) -> list[Node]:
     """
-    Clean a forest by removing empty-name parents and dropping their descendants.
+    Filters a forest of Nodes, removing any Node with an empty name string.
 
-    Input: iterable of root Nodes.
-    Output: list of newly constructed Nodes (no identity reuse).
-    Expects valid Node inputs; validation occurs at Node construction.
+    If a Node is removed, its entire subtree is dropped with it (pruned).
+    This function is safe for deeply nested structures that would blow the
+    standard recursion limit.
+
+    Args:
+        forest: An iterable of root Nodes.
+
+    Returns:
+        A list of new, clean Node instances.
     """
     return _clean_tree(forest)

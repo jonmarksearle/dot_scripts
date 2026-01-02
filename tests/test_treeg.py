@@ -8,10 +8,12 @@ from treeg import Node, clean_tree
 
 
 def n(name: str, *children: Node) -> Node:
+    """Shorthand helper to create a Node with children."""
     return Node(name, tuple(children))
 
 
 def chain(depth: int, name: str = "x") -> Node:
+    """Creates a single-branch tree (a linked list) of a given depth."""
     node = Node(name)
     for _ in range(depth):
         node = Node(name, (node,))
@@ -19,6 +21,7 @@ def chain(depth: int, name: str = "x") -> Node:
 
 
 def assert_chain(root: Node, depth: int, name: str = "x") -> None:
+    """Verifies that a chain has the expected depth and structure."""
     node = root
     for _ in range(depth):
         assert node.name == name
