@@ -308,3 +308,15 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Add wide-root regression test"
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A (stage change_log)
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
+2026-01-02T03:01:37Z [Code Author] apology: previous change_log entries captured literal $(date ...) instead of UTC timestamps
+2026-01-02T03:01:42Z [Code Author] apology: will use UTC "Z" timestamp format with role going forward
+2026-01-02T03:01:47Z [Code Author] apply_patch AGENTS.md: add UTC role log format and canonical append command
+2026-01-02T03:01:58Z [Code Author] apply_patch Standards/AGENTS.md: align logging format and command
+2026-01-02T03:03:38Z [Codex] apply_patch AGENTS.md: use agent name/role placeholder in log format and command
+2026-01-02T03:03:51Z [Codex] apply_patch Standards/AGENTS.md: use agent name/role placeholder in log format and command
+2026-01-02T03:05:17Z [Code Author] apply_patch AGENTS.md: clarify role inference for log tag
+2026-01-02T03:05:30Z [Code Author] apply_patch Standards/AGENTS.md: clarify role inference for log tag
+2026-01-02T03:08:26Z [Code Author] just format
+2026-01-02T03:08:36Z [Code Author] just lint
+2026-01-02T03:08:44Z [Code Author] just test
+2026-01-02T03:08:55Z [Code Author] git add -A
