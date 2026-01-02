@@ -352,3 +352,11 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T11:30:28Z [Refactorer] run just format
 2026-01-02T11:31:08Z [Refactorer] run git add -A
 2026-01-02T11:31:15Z [Refactorer] run git commit -m "treeg: use Frame dataclass with eager child validation"
+2026-01-02T11:43:35Z [CodeReviewer] Wrote strict review: treeg.review.2.md (Node|None typing reductions + eager validation consistency)
+2026-01-02T11:55:14Z [Refactorer] edit treeg.py: fix child types, _valid_node signature, FrameStack docstring
+2026-01-02T11:55:27Z [Refactorer] add treeg.review.2.response.md
+2026-01-02T11:55:33Z [Refactorer] run just format
+2026-01-02T11:55:41Z [Refactorer] run just lint
+2026-01-02T11:55:51Z [Refactorer] run just test
+2026-01-02T11:56:07Z [Refactorer] run git add -A
+2026-01-02T11:56:15Z [Refactorer] run git commit -m "treeg: tighten child types and runtime guard signature"

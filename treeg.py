@@ -32,20 +32,20 @@ def _validate_name(node: Node) -> None:
         raise TypeError("node name must be str")
 
 
-def _ensure_node(value: Node | None) -> Node:
+def _valid_node(value: object) -> Node:
     if not isinstance(value, Node):
         raise TypeError("expected Node")
     _validate_name(value)
     return value
 
 
-def _children_tuple(node: Node) -> tuple[Node | None, ...]:
+def _children_tuple(node: Node) -> tuple[Node, ...]:
     """Normalise children to a tuple, raising for non-iterable shapes."""
     try:
         children = tuple(node.children)
     except TypeError as exc:
         raise TypeError("children must be iterable") from exc
-    return tuple(_ensure_node(child) for child in children)
+    return tuple(_valid_node(child) for child in children)
 
 
 ## ###############################################
@@ -53,10 +53,10 @@ def _children_tuple(node: Node) -> tuple[Node | None, ...]:
 
 @dataclass(slots=True)
 class Frame:
-    """Mutable traversal frame; list avoids O(n^2) tuple churn."""
+    """Mutable traversal frame; cleaned list is built up incrementally."""
 
     node: Node
-    children: tuple[Node | None, ...]
+    children: tuple[Node, ...]
     index: int = 0
     cleaned: list[Node] = field(default_factory=list)
 
@@ -65,9 +65,8 @@ class FrameStack:
     """
     Manages a stack of frames for post-order tree traversal.
 
-    Encapsulates stack state and operations to reduce argument threading and
-    enforce invariants (e.g., no operations on empty stack). Methods are minimal
-    primitives for building up traversal logic.
+    Encapsulates stack state and operations to keep traversal compact and
+    explicit.
     """
 
     def __init__(self, root: Node) -> None:
@@ -117,8 +116,7 @@ class FrameStack:
         if frame.index >= len(frame.children):
             built = self.last_node
             return self.pop_frame(built)
-        child = _ensure_node(frame.children[frame.index])
-        self.push_child(child)
+        self.push_child(frame.children[frame.index])
         return None
 
 
@@ -135,7 +133,7 @@ def _clean_node(root: Node) -> Node | None:
 
 
 def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
-    return (_ensure_node(node) for node in _iter_forest(forest))
+    return (_valid_node(node) for node in _iter_forest(forest))
 
 
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
