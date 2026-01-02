@@ -325,3 +325,12 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T03:10:49Z [Code Author] git add -A
 2026-01-02T03:11:41Z [Code Author] git commit -m "Remove review artifacts"
 2026-01-02T03:11:51Z [Code Author] git add -A (stage change_log)
+- 2026-01-02: ran `just lint` for treeg review 11
+- 2026-01-02: ran `just test` for treeg review 11
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.11.md
+2026-01-02T03:26:40Z [Code Author] update treeg.py docstrings for runtime guards and complexity note
+2026-01-02T03:26:56Z [Code Author] run just format
+2026-01-02T03:27:25Z [Code Author] add treeg.review.11.response.md
+2026-01-02T03:27:49Z [Code Author] git add -A
+2026-01-02T03:28:02Z [Code Author] git add change_log.md
+2026-01-02T03:28:21Z [Code Author] git commit -m "treeg: clarify runtime guards and review response"

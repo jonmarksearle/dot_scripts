@@ -5,6 +5,7 @@ Uses an explicit stack to avoid recursion depth limits on very deep trees.
 Outputs newly constructed Nodes (no identity reuse).
 Raises TypeError for non-iterable forests, non-Node elements, and invalid Node
 shapes (non-str names or non-iterable children).
+Runtime cost is linear in node count; no recursion depth limits.
 """
 
 from __future__ import annotations
@@ -42,6 +43,7 @@ def _ensure_node(value: object) -> Node:
 
 
 def _children_tuple(node: Node) -> tuple[object, ...]:
+    """Normalise children to a tuple, raising for non-iterable shapes."""
     try:
         return tuple(node.children)
     except TypeError as exc:
