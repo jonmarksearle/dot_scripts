@@ -375,3 +375,15 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T13:19:20Z [Refactorer] run git add -A (stage change_log)
 2026-01-02T13:19:44Z [Refactorer] run git add -A
 2026-01-02T13:19:44Z [Refactorer] run git commit -m "treeg: move validation to Node and update tests"
+2026-01-02T13:22:17Z [CodeReviewer] Wrote strict review: treeg.review.4.md (post-refactor validation-in-Node + test contract alignment)
+2026-01-02T13:24:04Z [Refactorer] edit treeg.py: doc wording, Frame doc, inline iter
+2026-01-02T13:24:18Z [Refactorer] edit tests/test_treeg.py: refine validation tests with match
+2026-01-02T13:24:31Z [Refactorer] add treeg.review.4.response.md
+2026-01-02T13:24:39Z [Refactorer] run just format
+2026-01-02T13:24:48Z [Refactorer] run just lint
+2026-01-02T13:24:58Z [Refactorer] run just test
+2026-01-02T13:25:11Z [Refactorer] run git add -A
+2026-01-02T13:25:21Z [Refactorer] run git add -A (stage change_log)
+2026-01-02T13:25:27Z [Refactorer] run git commit -m "treeg: clarify validation contract and tests"
+2026-01-02T13:25:36Z [Refactorer] run git add -A
+2026-01-02T13:25:51Z [Refactorer] run git add -A (final)

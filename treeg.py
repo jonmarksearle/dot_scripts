@@ -4,12 +4,13 @@ clean_tree removes empty-name parents and drops their descendants.
 Uses an explicit stack to avoid recursion depth limits on very deep trees.
 Outputs newly constructed Nodes (no identity reuse).
 Node validation happens at construction; clean_tree assumes valid Node inputs.
+Validation runs on every Node construction and may add overhead on wide trees.
 Runtime cost is linear in node count; no recursion depth limits.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 
@@ -34,12 +35,9 @@ class Node:
         return self.children
 
 
-## ###############################################
-
-
 @dataclass(slots=True)
 class Frame:
-    """Mutable traversal frame; cleaned list is built up incrementally."""
+    """Mutable traversal frame; list avoids tuple churn on wide trees."""
 
     node: Node
     children: tuple[Node, ...]
@@ -115,15 +113,8 @@ def _clean_node(root: Node) -> Node | None:
     return None
 
 
-## ###############################################
-
-
-def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
-    return iter(forest)
-
-
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
-    cleaned = (_clean_node(node) for node in _iter_nodes(forest))
+    cleaned = (_clean_node(node) for node in iter(forest))
     return [node for node in cleaned if node is not None]
 
 

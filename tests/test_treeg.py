@@ -251,8 +251,8 @@ CASE_IDS: list[str] = [
 ]
 
 BAD_NAME_VALUES: tuple[object, ...] = (1, None)
-BAD_CHILDREN_VALUES: tuple[object, ...] = (
-    1,
+BAD_CHILDREN_NOT_ITERABLE: tuple[object, ...] = (1,)
+BAD_CHILDREN_WITH_NON_NODE: tuple[object, ...] = (
     ("x",),
     (None,),
     ("x", Node("a")),
@@ -262,17 +262,27 @@ BAD_CHILDREN_VALUES: tuple[object, ...] = (
 
 @pytest.mark.parametrize("name", BAD_NAME_VALUES, ids=["int", "none"])
 def test__Node__name_not_str__fail(name: object) -> None:
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match=r"node name must be str"):
         Node(cast(str, name))
 
 
 @pytest.mark.parametrize(
     "children",
-    BAD_CHILDREN_VALUES,
-    ids=["int", "str", "none", "str-node", "node-str"],
+    BAD_CHILDREN_NOT_ITERABLE,
+    ids=["int"],
 )
-def test__Node__children_invalid__fail(children: object) -> None:
-    with pytest.raises(TypeError):
+def test__Node__children_not_iterable__fail(children: object) -> None:
+    with pytest.raises(TypeError, match=r"children must be iterable"):
+        Node("a", cast(tuple[Node, ...], children))
+
+
+@pytest.mark.parametrize(
+    "children",
+    BAD_CHILDREN_WITH_NON_NODE,
+    ids=["str", "none", "str-node", "node-str"],
+)
+def test__Node__children_contains_non_node__fail(children: object) -> None:
+    with pytest.raises(TypeError, match=r"children must be Node"):
         Node("a", cast(tuple[Node, ...], children))
 
 
