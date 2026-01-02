@@ -224,3 +224,12 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: clarify unsafe test helpers"
+- 2026-01-02: ran `just test` for treeg review 4
+- 2026-01-02: ran `just lint` for treeg review 4
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.4.md
+2026-01-02T00:00:00Z write treeg.review.4.response.md
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: respond to review 4"
