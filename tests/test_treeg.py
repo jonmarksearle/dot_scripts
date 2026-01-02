@@ -30,14 +30,17 @@ def assert_chain(root: Node, depth: int, name: str = "x") -> None:
 
 
 def _unsafe_children(children: object) -> tuple[Node, ...]:
+    """Cast to invalid children tuple to exercise runtime guards."""
     return cast(tuple[Node, ...], children)
 
 
 def _unsafe_name(name: object) -> str:
+    """Cast to invalid name to exercise runtime guards."""
     return cast(str, name)
 
 
 def _unsafe_forest(value: object) -> Iterable[Node]:
+    """Cast to invalid forest to exercise runtime guards."""
     return cast(Iterable[Node], value)
 
 

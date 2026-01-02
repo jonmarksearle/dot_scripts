@@ -233,3 +233,15 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: respond to review 4"
+- 2026-01-02: ran `just lint` for treeg review 5
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.5.md
+- 2026-01-02: updated review file /home/jon/Work/.scripts/treeg.review.5.md to reflect updated docstring guidance in /home/jon/Work/Standards/CODE_STANDARDS.new.md
+2026-01-02T00:00:00Z apply_patch update treeg.py (module docstring, frame docs)
+2026-01-02T00:00:00Z apply_patch update tests/test_treeg.py (helper docstrings)
+2026-01-02T00:00:00Z write treeg.review.5.response.md
+2026-01-02T00:00:00Z apply_patch reorder treeg.py module docstring
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: document invariants"

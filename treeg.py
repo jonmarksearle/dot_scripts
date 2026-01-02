@@ -1,3 +1,11 @@
+"""
+Clean a forest of Node by removing empty-name nodes and dropping descendants.
+
+Uses an explicit stack to avoid recursion depth limits on very deep trees.
+Outputs newly constructed Nodes (no identity reuse). build_tree_dirty exists as
+an alias for API compatibility/teaching.
+"""
+
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator
@@ -57,10 +65,25 @@ def _push_child(stack: tuple[Frame, ...], child: Node) -> tuple[Frame, ...]:
 
 
 def _initial_stack(root: Node) -> tuple[Frame, ...]:
+    """
+    Seed the stack with a single frame.
+
+    Frame fields: (node, children, index, cleaned)
+    - node: current node being processed
+    - children: original child sequence (as a tuple)
+    - index: next child index to process
+    - cleaned: already-cleaned child nodes in order
+    """
     return ((root, _children_tuple(root), 0, ()),)
 
 
 def _finalise_frame(frame: Frame) -> Node | None:
+    """
+    Build the cleaned node for a completed frame.
+
+    Returns None when the node name is empty (drop subtree); otherwise returns a
+    new Node with cleaned children.
+    """
     node, _children, _index, cleaned = frame
     if node.name == "":
         return None
@@ -70,6 +93,12 @@ def _finalise_frame(frame: Frame) -> Node | None:
 def _pop_frame(
     stack: tuple[Frame, ...], built: Node | None
 ) -> tuple[tuple[Frame, ...], Node | None]:
+    """
+    Pop a completed frame and attach its built node to the parent.
+
+    Returns (new_stack, built) where built is only returned when the popped
+    frame was the root.
+    """
     remainder = stack[:-1]
     if not remainder:
         return (), built
@@ -77,6 +106,12 @@ def _pop_frame(
 
 
 def _step_stack(stack: tuple[Frame, ...]) -> tuple[tuple[Frame, ...], Node | None]:
+    """
+    Advance the traversal by one step.
+
+    Either pushes the next child frame or finalises the current frame. Returns
+    (new_stack, built) where built is only non-None when the root is finalised.
+    """
     node, children, index, _cleaned = stack[-1]
     if index >= len(children):
         built = _finalise_frame(stack[-1])
