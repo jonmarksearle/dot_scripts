@@ -62,4 +62,3 @@ def clean_tree(forest: Iterable[Node]) -> list[Node]:
         if pruned is not None:
             cleaned.append(pruned)
     return cleaned
-

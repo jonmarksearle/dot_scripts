@@ -276,3 +276,10 @@ Commands:
 - Added treeg.review.*.md pattern to .gitignore
 - Added treeg.alt.py to git repo
 - Updated .gitignore and change_log.md
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.9.md (informed by /home/jon/Work/.scripts/tree.review.8.md and principles>preferences)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") apply_patch treeg.py: fix docstrings and switch stack to list for linear traversal
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") just format (potential formatter changes)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") write treeg.review.9.response.md
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") apply_patch treeg.py: fix internal docstrings for new stack API
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") just format (after docstring update)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
