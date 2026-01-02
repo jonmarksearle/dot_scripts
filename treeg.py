@@ -16,6 +16,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass, field
+from typing import Self
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,7 +29,7 @@ class Node:
     """
 
     name: str
-    children: tuple["Node", ...] = ()
+    children: tuple[Self, ...] = ()
 
     def __post_init__(self) -> None:
         """Enforces type constraints on name and children."""
@@ -40,12 +41,6 @@ class Node:
             raise TypeError("children must be iterable") from exc
         if any(not isinstance(child, Node) for child in children):
             raise TypeError("children must be Node")
-        object.__setattr__(self, "children", children)
-
-    @property
-    def children_tuple(self) -> tuple["Node", ...]:
-        """A typed accessor for the children tuple."""
-        return self.children
 
 
 @dataclass(slots=True)
@@ -62,9 +57,13 @@ class Frame:
     """
 
     node: Node
-    children: tuple[Node, ...]
     index: int = 0
     cleaned: list[Node] = field(default_factory=list)
+
+    @property
+    def children(self) -> tuple[Node, ...]:
+        """A typed accessor for the children tuple."""
+        return self.node.children
 
 
 class FrameStack:
@@ -77,7 +76,7 @@ class FrameStack:
     """
 
     def __init__(self, root: Node) -> None:
-        self._stack: list[Frame] = [Frame(root, root.children_tuple)]
+        self._stack: list[Frame] = [Frame(root)]
 
     @property
     def is_empty(self) -> bool:
@@ -103,7 +102,7 @@ class FrameStack:
         """Pushes a new child frame onto the stack to process it."""
         frame = self.last_frame
         frame.index += 1
-        self._stack.append(Frame(child, child.children_tuple))
+        self._stack.append(Frame(child))
 
     def attach_child(self, child: Node | None) -> None:
         """Appends a fully processed child (if valid) to the current frame."""
@@ -120,7 +119,10 @@ class FrameStack:
         return None
 
     def step(self) -> Node | None:
-        """Advances the traversal by one step: push child, or pop frame."""
+        """
+        Advances the traversal by one step: push child, or pop frame.
+        Returns with a built node if the frame is done, or None if not.
+        """
         if self.is_empty:
             return None
         frame = self.last_frame
@@ -143,7 +145,7 @@ def _clean_node(root: Node) -> Node | None:
 
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
     """Internal helper to drive the forest cleaning process."""
-    cleaned = (_clean_node(node) for node in iter(forest))
+    cleaned = (_clean_node(node) for node in forest)
     return [node for node in cleaned if node is not None]
 
 
