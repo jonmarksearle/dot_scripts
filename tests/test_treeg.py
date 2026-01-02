@@ -5,7 +5,7 @@ from typing import cast
 
 import pytest
 
-from treeg import Node, build_tree
+from treeg import Node, clean_tree
 
 
 def n(name: str, *children: Node) -> Node:
@@ -279,64 +279,64 @@ FORESTS_WITH_NON_STR_NAME: tuple[tuple[Node, ...], ...] = (
 
 
 @pytest.mark.parametrize("forest", FORESTS_NOT_ITERABLE, ids=["none", "int"])
-def test__build_tree__forest_not_iterable__fail(forest: object) -> None:
+def test__clean_tree__forest_not_iterable__fail(forest: object) -> None:
     with pytest.raises(TypeError):
-        build_tree(_unsafe_forest(forest))
+        clean_tree(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest", FORESTS_WITH_NON_NODE, ids=["str", "none"])
-def test__build_tree__forest_contains_non_node__fail(
+def test__clean_tree__forest_contains_non_node__fail(
     forest: tuple[object, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree(_unsafe_forest(forest))
+        clean_tree(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_INVALID_CHILDREN, ids=["child-str", "child-none"]
 )
-def test__build_tree__children_contains_non_node__fail(
+def test__clean_tree__children_contains_non_node__fail(
     forest: tuple[Node, ...],
 ) -> None:
     with pytest.raises(TypeError):
-        build_tree(_unsafe_forest(forest))
+        clean_tree(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize(
     "forest", FORESTS_WITH_NON_STR_NAME, ids=["name-int", "name-none"]
 )
-def test__build_tree__name_not_str__fail(forest: tuple[Node, ...]) -> None:
+def test__clean_tree__name_not_str__fail(forest: tuple[Node, ...]) -> None:
     with pytest.raises(TypeError):
-        build_tree(_unsafe_forest(forest))
+        clean_tree(_unsafe_forest(forest))
 
 
 @pytest.mark.parametrize("forest,expected", CASES, ids=CASE_IDS)
-def test__build_tree__cases__success(
+def test__clean_tree__cases__success(
     forest: tuple[Node, ...], expected: list[Node]
 ) -> None:
-    assert build_tree(forest) == expected
+    assert clean_tree(forest) == expected
 
 
-def test__build_tree__accepts_generator__success() -> None:
+def test__clean_tree__accepts_generator__success() -> None:
     forest = (n("a", n(""), n("b")), n(""))
     gen = (x for x in forest)
-    assert build_tree(gen) == [n("a", n("b"))]
+    assert clean_tree(gen) == [n("a", n("b"))]
 
 
-def test__build_tree__returns_copy_not_same_objects__success() -> None:
+def test__clean_tree__returns_copy_not_same_objects__success() -> None:
     child = n("c")
     root = n("a", child)
-    out = build_tree([root])
+    out = clean_tree([root])
     assert out[0] is not root
     assert out[0].children[0] is not child
 
 
-def test__build_tree__supports_very_deep_tree__success() -> None:
+def test__clean_tree__supports_very_deep_tree__success() -> None:
     root = chain(5000)
-    out = build_tree([root])
+    out = clean_tree([root])
     assert len(out) == 1
     assert_chain(out[0], 5000)
 
 
-def test__build_tree__excluded_parent_drops_subtree__success() -> None:
-    assert build_tree([n("", n("ok"))]) == []
+def test__clean_tree__excluded_parent_drops_subtree__success() -> None:
+    assert clean_tree([n("", n("ok"))]) == []

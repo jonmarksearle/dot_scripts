@@ -255,3 +255,12 @@ Commands:
 2026-01-02T00:00:00Z just test
 2026-01-02T00:00:00Z git add -A
 2026-01-02T00:00:00Z git commit -m "treeg: collapse public API"
+- 2026-01-02: wrote review file /home/jon/Work/.scripts/treeg.review.7.md
+2026-01-02T00:00:00Z apply_patch update treeg.py (rename to clean_tree, add alias)
+2026-01-02T00:00:00Z edit tests/test_treeg.py (rename build_tree to clean_tree)
+2026-01-02T00:00:00Z write treeg.review.7.response.md
+2026-01-02T00:00:00Z just format
+2026-01-02T00:00:00Z just lint
+2026-01-02T00:00:00Z just test
+2026-01-02T00:00:00Z git add -A
+2026-01-02T00:00:00Z git commit -m "treeg: rename to clean_tree"

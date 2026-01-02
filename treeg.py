@@ -1,8 +1,9 @@
 """
-Clean a forest of Node by removing empty-name parents and dropping descendants.
+clean_tree removes empty-name parents and drops their descendants.
 
 Uses an explicit stack to avoid recursion depth limits on very deep trees.
 Outputs newly constructed Nodes (no identity reuse).
+build_tree remains as a deprecated alias for one cycle and will be removed.
 Raises TypeError for non-iterable forests, non-Node elements, and invalid Node
 shapes (non-str names or non-iterable children).
 """
@@ -136,10 +137,15 @@ def _build_tree(forest: Iterable[Node]) -> list[Node]:
     return [node for node in cleaned if node is not None]
 
 
-def build_tree(forest: Iterable[Node]) -> list[Node]:
+def clean_tree(forest: Iterable[Node]) -> list[Node]:
     """
-    Return new nodes with empty-name parents removed, dropping their descendants.
+    Clean nodes by removing empty-name parents and dropping their descendants.
 
     The returned nodes are newly constructed (no object identity reuse).
     """
     return _build_tree(forest)
+
+
+def build_tree(forest: Iterable[Node]) -> list[Node]:
+    """Deprecated alias for clean_tree."""
+    return clean_tree(forest)
