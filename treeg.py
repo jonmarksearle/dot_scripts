@@ -31,6 +31,7 @@ class Node:
     children: tuple["Node", ...] = ()
 
     def __post_init__(self) -> None:
+        """Enforces type constraints on name and children."""
         if not isinstance(self.name, str):
             raise TypeError("node name must be str")
         try:
@@ -99,16 +100,19 @@ class FrameStack:
         return Node(frame.node.name, tuple(frame.cleaned))
 
     def push_child(self, child: Node) -> None:
+        """Pushes a new child frame onto the stack to process it."""
         frame = self.last_frame
         frame.index += 1
         self._stack.append(Frame(child, child.children_tuple))
 
     def attach_child(self, child: Node | None) -> None:
+        """Appends a fully processed child (if valid) to the current frame."""
         if child is None:
             return
         self.last_frame.cleaned.append(child)
 
     def pop_frame(self, built: Node | None) -> Node | None:
+        """Pops the top frame and attaches its result to the parent frame."""
         self._stack.pop()
         if self.is_empty:
             return built
@@ -116,6 +120,7 @@ class FrameStack:
         return None
 
     def step(self) -> Node | None:
+        """Advances the traversal by one step: push child, or pop frame."""
         if self.is_empty:
             return None
         frame = self.last_frame
@@ -127,6 +132,7 @@ class FrameStack:
 
 
 def _clean_node(root: Node) -> Node | None:
+    """Iteratively cleans a single node and its descendants using a stack."""
     stack = FrameStack(root)
     while not stack.is_empty:
         built = stack.step()
@@ -136,6 +142,7 @@ def _clean_node(root: Node) -> Node | None:
 
 
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
+    """Internal helper to drive the forest cleaning process."""
     cleaned = (_clean_node(node) for node in iter(forest))
     return [node for node in cleaned if node is not None]
 

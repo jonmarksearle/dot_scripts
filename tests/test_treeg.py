@@ -265,6 +265,7 @@ BAD_CHILDREN_WITH_NON_NODE: tuple[object, ...] = (
 
 @pytest.mark.parametrize("name", BAD_NAME_VALUES, ids=["int", "none"])
 def test__Node__name_not_str__fail(name: object) -> None:
+    """Verifies that Node rejects non-string names."""
     with pytest.raises(TypeError, match=r"node name must be str"):
         Node(cast(str, name))
 
@@ -275,6 +276,7 @@ def test__Node__name_not_str__fail(name: object) -> None:
     ids=["int"],
 )
 def test__Node__children_not_iterable__fail(children: object) -> None:
+    """Verifies that Node rejects non-iterable children."""
     with pytest.raises(TypeError, match=r"children must be iterable"):
         Node("a", cast(tuple[Node, ...], children))
 
@@ -285,6 +287,7 @@ def test__Node__children_not_iterable__fail(children: object) -> None:
     ids=["str", "none", "str-node", "node-str"],
 )
 def test__Node__children_contains_non_node__fail(children: object) -> None:
+    """Verifies that Node rejects children that are not Node instances."""
     with pytest.raises(TypeError, match=r"children must be Node"):
         Node("a", cast(tuple[Node, ...], children))
 
@@ -293,16 +296,19 @@ def test__Node__children_contains_non_node__fail(children: object) -> None:
 def test__clean_tree__cases__success(
     forest: tuple[Node, ...], expected: list[Node]
 ) -> None:
+    """Runs the comprehensive suite of structural test cases."""
     assert clean_tree(forest) == expected
 
 
 def test__clean_tree__accepts_generator__success() -> None:
+    """Verifies that clean_tree accepts a generator as input."""
     forest = (n("a", n(""), n("b")), n(""))
     gen = (x for x in forest)
     assert clean_tree(gen) == [n("a", n("b"))]
 
 
 def test__clean_tree__returns_copy_not_same_objects__success() -> None:
+    """Ensures that output nodes are new instances (immutability)."""
     child = n("c")
     root = n("a", child)
     out = clean_tree([root])
@@ -311,6 +317,7 @@ def test__clean_tree__returns_copy_not_same_objects__success() -> None:
 
 
 def test__clean_tree__supports_very_deep_tree__success() -> None:
+    """Confirms no recursion depth error on deep trees (stack safety)."""
     root = chain(5000)
     out = clean_tree([root])
     assert len(out) == 1
@@ -318,10 +325,12 @@ def test__clean_tree__supports_very_deep_tree__success() -> None:
 
 
 def test__clean_tree__excluded_parent_drops_subtree__success() -> None:
+    """Verifies that removing a parent also removes its children."""
     assert clean_tree([n("", n("ok"))]) == []
 
 
 def test__clean_tree__very_wide_root__success() -> None:
+    """Confirms performance/safety on very wide shallow trees."""
     root = n("root", *(n(f"c{i}") for i in range(3000)))
     out = clean_tree([root])
     assert out == [root]
