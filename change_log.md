@@ -283,3 +283,6 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") write treeg.review.9.response.md
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") apply_patch treeg.py: fix internal docstrings for new stack API
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") just format (after docstring update)
 $(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Fix clean_tree stack performance and docs"
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git add -A (stage change_log)
+$(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
