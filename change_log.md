@@ -334,3 +334,15 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-02T03:27:49Z [Code Author] git add -A
 2026-01-02T03:28:02Z [Code Author] git add change_log.md
 2026-01-02T03:28:21Z [Code Author] git commit -m "treeg: clarify runtime guards and review response"
+2026-01-02T10:29:20Z [Code Author] ran gates: just format && just lint && just test
+2026-01-02T10:38:51Z [Code Author] ran gates: just format && just lint && just test
+2026-01-02T10:39:58Z [Code Author] git add -A
+2026-01-02T10:40:09Z [Code Author] git commit -m "treeg: use immutable frame children"
+2026-01-02T10:40:13Z [Code Author] git add change_log.md
+2026-01-02T10:40:30Z [Code Author] treeg: switched FrameStack cleaned children to tuples
+2026-01-02T10:40:35Z [Code Author] git add change_log.md
+2026-01-02T10:40:40Z [Code Author] git commit --amend --no-edit
+2026-01-02T10:45:01Z [Code Author] reverted FrameStack append change
+2026-01-02T10:45:06Z [Code Author] ran gates: just format && just lint && just test
+2026-01-02T10:45:11Z [Code Author] git add -A
+2026-01-02T10:45:20Z [Code Author] git commit --amend --no-edit

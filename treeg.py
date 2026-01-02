@@ -50,86 +50,85 @@ def _children_tuple(node: Node) -> tuple[object, ...]:
         raise TypeError("children must be iterable") from exc
 
 
-def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
-    return (_ensure_node(node) for node in _iter_forest(forest))
+## ###############################################
 
 
-def _attach_child(stack: list[Frame], child: Node | None) -> None:
-    if child is None:
-        return
-    _node, _children, _index, cleaned = stack[-1]
-    cleaned.append(child)
-
-
-def _push_child(stack: list[Frame], child: Node) -> None:
-    node, children, index, cleaned = stack[-1]
-    stack[-1] = (node, children, index + 1, cleaned)
-    stack.append((child, _children_tuple(child), 0, []))
-
-
-def _initial_stack(root: Node) -> list[Frame]:
+class FrameStack:
     """
-    Seed the stack with a single frame.
+    Manages a stack of frames for post-order tree traversal.
 
-    Frame fields: (node, children, index, cleaned)
-    - node: current node being processed
-    - children: original child sequence (as a tuple)
-    - index: next child index to process
-    - cleaned: already-cleaned child nodes in order
+    Encapsulates stack state and operations to reduce argument threading and
+    enforce invariants (e.g., no operations on empty stack). Methods are minimal
+    primitives for building up traversal logic.
     """
-    return [(root, _children_tuple(root), 0, [])]
 
+    def __init__(self, root: Node) -> None:
+        self._stack: list[Frame] = [(root, _children_tuple(root), 0, [])]
 
-def _finalise_frame(frame: Frame) -> Node | None:
-    """
-    Build the cleaned node for a completed frame.
+    @property
+    def last_frame(self) -> Frame:
+        """Top frame on the stack."""
+        if not self._stack:
+            raise IndexError("Stack is empty")
+        return self._stack[-1]
 
-    Returns None when the node name is empty (drop subtree); otherwise returns a
-    new Node with cleaned children.
-    """
-    node, _children, _index, cleaned = frame
-    if node.name == "":
+    @property
+    def is_empty(self) -> bool:
+        """True if the stack has no frames."""
+        return not self._stack
+
+    @property
+    def last_node(self) -> Node | None:
+        """Cleaned node from the last frame, or None if dropped."""
+        node, _children, _index, cleaned = self.last_frame
+        if node.name == "":
+            return None
+        return Node(node.name, tuple(cleaned))
+
+    def push_child(self, child: Node) -> None:
+        node, children, index, cleaned = self.last_frame
+        self._stack[-1] = (node, children, index + 1, cleaned)
+        self._stack.append((child, _children_tuple(child), 0, []))
+
+    def attach_child(self, child: Node | None) -> None:
+        if child is None:
+            return
+        _node, _children, _index, cleaned = self.last_frame
+        cleaned.append(child)
+
+    def pop_frame(self, built: Node | None) -> Node | None:
+        self._stack.pop()
+        if self.is_empty:
+            return built
+        self.attach_child(built)
         return None
-    return Node(node.name, tuple(cleaned))
 
-
-def _pop_frame(stack: list[Frame], built: Node | None) -> Node | None:
-    """
-    Pop a completed frame and attach its built node to the parent.
-
-    Returns the built node only when the popped frame was the root; otherwise
-    returns None after attaching to the parent.
-    """
-    stack.pop()
-    if not stack:
-        return built
-    _attach_child(stack, built)
-    return None
-
-
-def _step_stack(stack: list[Frame]) -> Node | None:
-    """
-    Advance the traversal by one step.
-
-    Either pushes the next child frame or finalises the current frame. Returns
-    the built root node only when the root is finalised; otherwise None.
-    """
-    node, children, index, _cleaned = stack[-1]
-    if index >= len(children):
-        built = _finalise_frame(stack[-1])
-        return _pop_frame(stack, built)
-    child = _ensure_node(children[index])
-    _push_child(stack, child)
-    return None
+    def step(self) -> Node | None:
+        if self.is_empty:
+            return None
+        node, children, index, _cleaned = self.last_frame
+        if index >= len(children):
+            built = self.last_node
+            return self.pop_frame(built)
+        child = _ensure_node(children[index])
+        self.push_child(child)
+        return None
 
 
 def _clean_node(root: Node) -> Node | None:
-    stack = _initial_stack(root)
-    while stack:
-        built = _step_stack(stack)
+    stack = FrameStack(root)
+    while not stack.is_empty:
+        built = stack.step()
         if built is not None:
             return built
     return None
+
+
+## ###############################################
+
+
+def _iter_nodes(forest: Iterable[Node]) -> Iterator[Node]:
+    return (_ensure_node(node) for node in _iter_forest(forest))
 
 
 def _clean_tree(forest: Iterable[Node]) -> list[Node]:
