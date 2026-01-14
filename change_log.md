@@ -407,3 +407,10 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-05T17:23:22Z [Codex] running git add -A
 2026-01-05T17:26:41Z [Codex] running git pull per request
 2026-01-05T17:26:41Z [Codex] git pull failed (exit 128)
+2026-01-14T03:22:47Z [Codex] Ran just format && just lint && just test (gates); tests failed: ModuleNotFoundError: bs4
+2026-01-14T03:23:45Z [Codex] Ran uv add beautifulsoup4
+2026-01-14T03:23:54Z [Codex] Ran just test; failed: ModuleNotFoundError: markdownify
+2026-01-14T03:24:38Z [Codex] Ran uv add markdownify
+2026-01-14T03:24:48Z [Codex] Ran just test; failed: bs4 FeatureNotFound for lxml parser
+2026-01-14T03:25:12Z [Codex] Ran uv add lxml
+2026-01-14T03:25:22Z [Codex] Ran just test; failed: mhtml2md placeholder mismatch in test__convert_mhtml_to_md__success

@@ -61,7 +61,7 @@ def stdout_buffer() -> io.StringIO:
 
 @pytest.fixture
 def copy_image(
-    tmp_path: pytest.Path,
+    tmp_path: Path,
     stdout_buffer: io.StringIO,
 ) -> Callable[..., Path]:
     def _run(**kwargs) -> Path:
