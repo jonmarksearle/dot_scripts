@@ -10,6 +10,7 @@
 # ///
 from __future__ import annotations
 
+import hashlib
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
@@ -120,6 +121,46 @@ class MessageExtracts:
 
 
 ## Filename Functions
+
+_MAX_FILENAME_BYTES = 255
+_HASH_SUFFIX_BYTES = 8
+
+
+def _filename_bytes(value: str) -> int:
+    return len(value.encode("utf-8"))
+
+
+def _hash_suffix(value: str) -> str:
+    return hashlib.sha1(value.encode("utf-8")).hexdigest()[:_HASH_SUFFIX_BYTES]
+
+
+def _truncate_utf8(value: str, max_bytes: int) -> str:
+    if max_bytes <= 0:
+        return ""
+    encoded = value.encode("utf-8")
+    if len(encoded) <= max_bytes:
+        return value
+    return encoded[:max_bytes].decode("utf-8", errors="ignore").rstrip()
+
+
+def _name_budget(base: str, ext: str) -> int:
+    return _MAX_FILENAME_BYTES - _filename_bytes(f"{base}..{ext}")
+
+
+def _shorten_name_with_hash(name: str, budget: int) -> str:
+    suffix = f"-{_hash_suffix(name)}"
+    suffix_bytes = _filename_bytes(suffix)
+    if budget <= suffix_bytes:
+        return _truncate_utf8(_hash_suffix(name), budget)
+    head = _truncate_utf8(name, budget - suffix_bytes)
+    return f"{head}{suffix}"
+
+
+def _limited_image_name(base: str, name: str, ext: str) -> str:
+    budget = _name_budget(base, ext)
+    if _filename_bytes(name) <= budget:
+        return name
+    return _shorten_name_with_hash(name, budget)
 
 
 def _base_name(input_path: Path) -> str:
@@ -324,7 +365,7 @@ def _replacement_for_src(
     if not img:
         return _placeholder_fallback(tag)
 
-    plan = _build_write_plan(tag, img, state.used)
+    plan = _build_write_plan(tag, img, state.used, base)
     _execute_write_plan(outdir, base, plan)
 
     state.saved_by_src[src] = plan.placeholder_tail
@@ -356,14 +397,15 @@ def _placeholder_fallback(tag: Tag) -> str:
 
 
 def _build_write_plan(
-    tag: Tag, img: MhtmlImage, used: dict[str, int]
+    tag: Tag, img: MhtmlImage, used: dict[str, int], base: str
 ) -> ImageWritePlan:
     ext = _guess_ext(img)
     base_name = _preferred_image_name(tag, img)
     disambiguated = _next_disambiguated_name(base_name, used)
-    tail = f"{disambiguated}.{ext}"
+    safe_name = _limited_image_name(base, disambiguated, ext)
+    tail = f"{safe_name}.{ext}"
     return ImageWritePlan(
-        disambiguated_name=disambiguated,
+        disambiguated_name=safe_name,
         ext=ext,
         payload=img.payload,
         placeholder_tail=tail,
@@ -404,7 +446,8 @@ def _execute_write_plan(outdir: Path, base: str, plan: ImageWritePlan) -> None:
 
 
 def _image_filename(base: str, name: str, ext: str) -> str:
-    return f"{base}.{name}.{ext}"
+    safe_name = _limited_image_name(base, name, ext)
+    return f"{base}.{safe_name}.{ext}"
 
 
 def _html_to_markdown(html: str) -> str:

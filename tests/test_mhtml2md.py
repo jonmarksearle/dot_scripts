@@ -8,6 +8,10 @@ import pytest
 import mhtml2md
 
 
+def _bytes_len(value: str) -> int:
+    return len(value.encode("utf-8"))
+
+
 @pytest.fixture
 def sample_mhtml_bytes() -> bytes:
     return dedent(
@@ -124,6 +128,14 @@ def test__base_name__success(path: str, expected: str) -> None:
 )
 def test__safe_stem__success(raw: str, expected: str) -> None:
     assert mhtml2md._safe_stem(raw) == expected
+
+
+def test__image_filename__success__truncates_long_name() -> None:
+    name = "a" * 300
+    filename = mhtml2md._image_filename("base", name, "png")
+    assert _bytes_len(filename) <= 255
+    assert filename.endswith(".png")
+    assert f"-{mhtml2md._hash_suffix(name)}" in filename
 
 
 def test__extract_images_and_html__success__html(

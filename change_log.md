@@ -415,3 +415,6 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-14T03:25:12Z [Codex] Ran uv add lxml
 2026-01-14T03:25:22Z [Codex] Ran just test; failed: mhtml2md placeholder mismatch in test__convert_mhtml_to_md__success
 2026-01-14T03:31:58Z [Codex] Updated tests/test_mhtml2md.py to align with test standards (fixtures, fail-first, parametrize, alt-text placeholders)
+2026-01-14T04:08:40Z [Codex] apply_patch: add POSIX filename length helpers and hashing
+2026-01-14T04:08:45Z [Codex] apply_patch: limit image filenames and propagate safe names
+2026-01-14T04:08:58Z [Codex] apply_patch: add tests for POSIX filename truncation
