@@ -414,3 +414,4 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-14T03:24:48Z [Codex] Ran just test; failed: bs4 FeatureNotFound for lxml parser
 2026-01-14T03:25:12Z [Codex] Ran uv add lxml
 2026-01-14T03:25:22Z [Codex] Ran just test; failed: mhtml2md placeholder mismatch in test__convert_mhtml_to_md__success
+2026-01-14T03:31:58Z [Codex] Updated tests/test_mhtml2md.py to align with test standards (fixtures, fail-first, parametrize, alt-text placeholders)
