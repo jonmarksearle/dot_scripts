@@ -418,3 +418,39 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-14T04:08:40Z [Codex] apply_patch: add POSIX filename length helpers and hashing
 2026-01-14T04:08:45Z [Codex] apply_patch: limit image filenames and propagate safe names
 2026-01-14T04:08:58Z [Codex] apply_patch: add tests for POSIX filename truncation
+2026-01-14T04:16:07Z [Codex] apply_patch: limit base names for md and image filenames
+2026-01-14T04:16:18Z [Codex] apply_patch: add UTF-8 truncation and md base tests
+2026-01-14T04:16:58Z [Codex] just format && just lint && just test
+2026-01-14T04:29:20Z [Codex] apply_patch: add truncation edge-case tests
+2026-01-14T04:30:56Z [Codex] apply_patch: relax base+name truncation hash assertion
+2026-01-14T05:34:55Z [Codex] apply_patch: add clean_md tests
+2026-01-14T05:35:56Z [Codex] apply_patch: add clean_md script
+2026-01-14T05:36:18Z [Codex] apply_patch: document clean_md in README
+2026-01-14T05:36:31Z [Codex] apply_patch: add clean_md documentation
+2026-01-14T05:38:11Z [Codex] apply_patch: fix mypy returns in clean_md loops
+2026-01-14T05:38:39Z [Codex] apply_patch: add clean_md edge-case tests
+2026-01-14T05:39:05Z [Codex] just format && just lint && just test
+2026-01-14T05:39:05Z [Codex] just format && just lint && just test
+2026-01-14T05:41:47Z [Codex] apply_patch: expand clean_md test coverage
+2026-01-14T05:42:13Z [Codex] apply_patch: adjust clean_md edge-case expectations
+2026-01-14T05:42:27Z [Codex] just format && just lint && just test
+2026-01-14T05:46:27Z [Codex] apply_patch: add additional clean_md behaviour tests
+2026-01-14T05:46:42Z [Codex] just format && just lint && just test
+2026-01-14T06:10:01Z [Codex] apply_patch: add no-header and non-ascii clean_md tests
+2026-01-14T06:10:39Z [Codex] apply_patch: support edited lines, non-ascii cleanup, and no-header fallback
+2026-01-14T06:10:59Z [Codex] apply_patch: guard regex match in clean_md
+2026-01-14T06:11:21Z [Codex] apply_patch: update missing header test for fallback
+2026-01-14T06:11:36Z [Codex] just format && just lint && just test
+2026-01-14T06:12:19Z [Codex] apply_patch: add more clean_md tests (updated/edited, related, tables)
+2026-01-14T06:12:51Z [Codex] apply_patch: stop related parsing at next marker
+2026-01-14T06:13:06Z [Codex] just format && just lint && just test
+2026-01-14T06:23:02Z [Codex] write test_clean_md.review.1.md
+2026-01-14T06:23:59Z [Codex] write test_clean_md.review.1.response.md
+2026-01-14T06:24:17Z [Codex] write test_clean_md.review.2.md
+2026-01-14T06:24:29Z [Codex] write test_clean_md.review.2.response.md
+2026-01-14T06:24:43Z [Codex] write test_clean_md.review.3.md
+2026-01-14T06:24:56Z [Codex] write test_clean_md.review.3.response.md
+2026-01-14T06:27:18Z [Codex] write clean_md.review.1.md
+2026-01-14T06:27:40Z [Codex] apply_patch: prefer iterators for intermediate clean_md pipelines
+2026-01-14T06:27:55Z [Codex] just format && just lint && just test
+2026-01-14T06:28:09Z [Codex] write clean_md.review.1.response.md

@@ -138,6 +138,53 @@ def test__image_filename__success__truncates_long_name() -> None:
     assert f"-{mhtml2md._hash_suffix(name)}" in filename
 
 
+def test__image_filename__success__truncates_utf8_name() -> None:
+    name = "📦" * 120
+    filename = mhtml2md._image_filename("base", name, "png")
+    assert _bytes_len(filename) <= 255
+    assert filename.endswith(".png")
+    assert f"-{mhtml2md._hash_suffix(name)}" in filename
+
+
+def test__image_filename__success__truncates_base_and_name() -> None:
+    base = "b" * 300
+    name = "n" * 300
+    filename = mhtml2md._image_filename(base, name, "png")
+    assert _bytes_len(filename) <= 255
+    assert f"-{mhtml2md._hash_suffix(base)}" in filename
+    assert mhtml2md._hash_suffix(name) in filename
+
+
+def test__image_filename__success__sanitises_and_truncates() -> None:
+    raw = 'A/B:C*D?E"F<G>H|I' * 20
+    name = mhtml2md._safe_stem(raw)
+    filename = mhtml2md._image_filename("base", name, "png")
+    assert _bytes_len(filename) <= 255
+    assert "-".join(filename.split("-")[-2:]).endswith(".png")
+
+
+def test__image_filename__success__exact_255_bytes() -> None:
+    base = "base"
+    name = "a" * mhtml2md._name_budget(base, "png")
+    filename = mhtml2md._image_filename(base, name, "png")
+    assert _bytes_len(filename) == 255
+    assert filename == f"{base}.{name}.png"
+
+
+def test__limited_image_name__success__hash_only_when_tight() -> None:
+    base = "b" * 246
+    name = "a" * 10
+    limited = mhtml2md._limited_image_name(base, name, "png")
+    assert limited == mhtml2md._hash_suffix(name)[:4]
+
+
+def test__limited_md_base__success__truncates_utf8() -> None:
+    base = "ä" * 200
+    limited = mhtml2md._limited_md_base(base)
+    assert _bytes_len(limited) <= 252
+    assert f"-{mhtml2md._hash_suffix(base)}" in limited
+
+
 def test__extract_images_and_html__success__html(
     extracts: mhtml2md.MessageExtracts,
 ) -> None:

@@ -147,6 +147,15 @@ def _name_budget(base: str, ext: str) -> int:
     return _MAX_FILENAME_BYTES - _filename_bytes(f"{base}..{ext}")
 
 
+def _base_budget_for_md() -> int:
+    return _MAX_FILENAME_BYTES - _filename_bytes(".md")
+
+
+def _base_budget_for_image(ext: str, name: str) -> int:
+    min_name = _hash_suffix(name)
+    return _MAX_FILENAME_BYTES - _filename_bytes(f".{min_name}.{ext}")
+
+
 def _shorten_name_with_hash(name: str, budget: int) -> str:
     suffix = f"-{_hash_suffix(name)}"
     suffix_bytes = _filename_bytes(suffix)
@@ -154,6 +163,20 @@ def _shorten_name_with_hash(name: str, budget: int) -> str:
         return _truncate_utf8(_hash_suffix(name), budget)
     head = _truncate_utf8(name, budget - suffix_bytes)
     return f"{head}{suffix}"
+
+
+def _limited_base_name(base: str, budget: int) -> str:
+    if _filename_bytes(base) <= budget:
+        return base
+    return _shorten_name_with_hash(base, budget)
+
+
+def _limited_md_base(base: str) -> str:
+    return _limited_base_name(base, _base_budget_for_md())
+
+
+def _limited_image_base(base: str, name: str, ext: str) -> str:
+    return _limited_base_name(base, _base_budget_for_image(ext, name))
 
 
 def _limited_image_name(base: str, name: str, ext: str) -> str:
@@ -446,8 +469,9 @@ def _execute_write_plan(outdir: Path, base: str, plan: ImageWritePlan) -> None:
 
 
 def _image_filename(base: str, name: str, ext: str) -> str:
-    safe_name = _limited_image_name(base, name, ext)
-    return f"{base}.{safe_name}.{ext}"
+    safe_base = _limited_image_base(base, name, ext)
+    safe_name = _limited_image_name(safe_base, name, ext)
+    return f"{safe_base}.{safe_name}.{ext}"
 
 
 def _html_to_markdown(html: str) -> str:
@@ -468,7 +492,7 @@ def _write_markdown(outdir: Path, base: str, md: str) -> Path:
 
 def convert_mhtml_to_md(input_path: Path, outdir: Path) -> MarkdownBundle:
     outdir.mkdir(parents=True, exist_ok=True)
-    base = _base_name(input_path)
+    base = _limited_md_base(_base_name(input_path))
 
     extracted = _extract_images_and_html(input_path.read_bytes())
     rewritten = _replace_images_with_placeholders(
