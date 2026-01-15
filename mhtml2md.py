@@ -216,7 +216,7 @@ def _filename_from_headers(part: EmailMessage) -> str | None:
     if not content_location:
         return None
 
-    tail = content_location.split("/")[-1].split("?")[0]
+    tail = content_location.split("/")[-1].split("?")[0].split("#")[0]
     return tail if "." in tail else None
 
 
@@ -238,7 +238,7 @@ def _guess_ext(img: MhtmlImage) -> str:
 def _tail(content_location: str | None) -> str:
     if not content_location:
         return ""
-    return content_location.split("/")[-1].split("?")[0]
+    return content_location.split("/")[-1].split("?")[0].split("#")[0]
 
 
 def _best_image_name(img: MhtmlImage, fallback: str) -> str:
