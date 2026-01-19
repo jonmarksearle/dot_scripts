@@ -101,3 +101,25 @@ class WeatherProvider(Protocol):
 4. Pass results to `ConsolidationEngine`.
 5. Apply Tide Extremum calculations to the consolidated list.
 6. Print output grouped by date headers using `Rich`.
+
+## 8. Prior Art & Legacy Insights (`get_weather.py`)
+*   **Grouping Strategy:** The legacy script uses `itertools.groupby` effectively for date-based aggregation. We will adapt this for `(date, hour)` grouping in the `ConsolidationEngine`.
+*   **Statistical Robustness:** The legacy script employs `mean` and `stdev` for filtering outliers. While our primary strategy is "Rank Precedence," we may incorporate simple mean averaging for non-primary fields (e.g., if Rank 1 is missing, average Rank 2 and 3) if strictly necessary, though strict fallback is preferred for predictability.
+*   **Enums:** The existing `WeatherCode` Enum aligns closely with our `WeatherCondition`. We will ensure our new Enums are compatible or superior in expressiveness.
+
+## 9. Provider Analysis & Selection
+*   **BOM (Bureau of Meteorology):**
+    *   **Strengths:** Gold standard for Australian accuracy, radar-derived rain probability, and official warnings.
+    *   **Role:** Primary source (Rank 1) for Condition, Temp, Wind, and Rain.
+*   **WillyWeather:**
+    *   **Strengths:** Specialized coastal data, highly accurate astronomical tide predictions for specific beaches (e.g., Aspendale).
+    *   **Role:** Primary source (Rank 1) for Tide Height and Extremes.
+*   **OpenMeteo:**
+    *   **Strengths:** Fast, reliable API with global coverage; excellent for derived metadata (UV, Humidity, Feels Like).
+    *   **Role:** Secondary/Fallback source (Rank 2) for general weather; Primary for metadata.
+*   **TimeAndDate.com:**
+    *   **Strengths:** Reliable astronomy data (Sunrise/Sunset, Moon Phases) and long-term almanac data.
+    *   **Status:** Not selected for MVP (OpenMeteo covers most needs), but a strong candidate for future astronomy extensions.
+*   **Wttr.in:**
+    *   **Strengths:** Extremely simple, text-based API; zero parsing overhead.
+    *   **Status:** Potential "Rank 3" fallback if all APIs fail, but lacks granularity for tides and specific metrics.
