@@ -107,19 +107,19 @@ class WeatherProvider(Protocol):
 *   **Statistical Robustness:** The legacy script employs `mean` and `stdev` for filtering outliers. While our primary strategy is "Rank Precedence," we may incorporate simple mean averaging for non-primary fields (e.g., if Rank 1 is missing, average Rank 2 and 3) if strictly necessary, though strict fallback is preferred for predictability.
 *   **Enums:** The existing `WeatherCode` Enum aligns closely with our `WeatherCondition`. We will ensure our new Enums are compatible or superior in expressiveness.
 
-## 9. Provider Analysis & Selection
-*   **BOM (Bureau of Meteorology):**
-    *   **Strengths:** Gold standard for Australian accuracy, radar-derived rain probability, and official warnings.
-    *   **Role:** Primary source (Rank 1) for Condition, Temp, Wind, and Rain.
-*   **WillyWeather:**
-    *   **Strengths:** Specialized coastal data, highly accurate astronomical tide predictions for specific beaches (e.g., Aspendale).
-    *   **Role:** Primary source (Rank 1) for Tide Height and Extremes.
-*   **OpenMeteo:**
-    *   **Strengths:** Fast, reliable API with global coverage; excellent for derived metadata (UV, Humidity, Feels Like).
-    *   **Role:** Secondary/Fallback source (Rank 2) for general weather; Primary for metadata.
-*   **TimeAndDate.com:**
-    *   **Strengths:** Reliable astronomy data (Sunrise/Sunset, Moon Phases) and long-term almanac data.
-    *   **Status:** Not selected for MVP (OpenMeteo covers most needs), but a strong candidate for future astronomy extensions.
-*   **Wttr.in:**
-    *   **Strengths:** Extremely simple, text-based API; zero parsing overhead.
-    *   **Status:** Potential "Rank 3" fallback if all APIs fail, but lacks granularity for tides and specific metrics.
+## 9. Provider Landscape (Selection & Analysis)
+
+| Rank | Provider | Focus | Key Advantage | Data Type | Auth | Endpoint | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | BOM | All | Official, AU accuracy | HTML/XML | None | `http://www.bom.gov.au/places/...` | MVP |
+| 2 | WillyWeather | Tides/Coastal | Aspendale specific | HTML | None | `https://tides.willyweather.com.au/...` | MVP |
+| 3 | OpenMeteo | Meta (UV/Hum) | High-speed, modern | JSON | None | `https://api.open-meteo.com/v1/forecast` | MVP |
+| 4 | Seabreeze | Marine/Wind | Local Melb. sailing | HTML | None | `https://www.seabreeze.com.au/...` | Future |
+| 5 | TimeAndDate | Astro/Meta | Clean formatting | HTML | None | `https://www.timeanddate.com/weather/...` | Future |
+| 6 | StormGlass | Marine/Tides | Global maritime data | JSON | Key | `https://api.stormglass.io/v2/` | Future |
+| 7 | WorldTides | Tides | Dedicated Tide API | JSON | Key | `https://www.worldtides.info/api/v3` | Future |
+| 8 | OpenWeatherMap | General | Huge redundancy | JSON | Key | `https://api.openweathermap.org/data/3.0/` | Future |
+| 9 | WeatherAPI | General | Very stable JSON | JSON | Key | `https://api.weatherapi.com/v1/` | Future |
+| 10 | MetEye | Localized | 6km grid precision | HTML | None | `http://www.bom.gov.au/australia/meteye/` | Future |
+| 11 | Wttr.in | Backup | Simple text fallback | Text | None | `https://wttr.in/` | Future |
+| 12 | BayWx | Port Phillip | Live Bay conditions | HTML | None | `http://www.baywx.com.au/` | Future |
