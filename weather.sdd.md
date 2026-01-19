@@ -35,6 +35,7 @@ class WeatherCondition(StrEnum):
     PARTLY_CLOUDY = "⛅ Partly Cloudy"
     RAIN = "🌧️ Rain"
     STORM = "⛈️ Storm"
+    SNOW = "🌨️ Snow"
     UNKNOWN = "❓ Unknown"
 
 class HourlyWeather(BaseModel):
