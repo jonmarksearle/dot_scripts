@@ -165,3 +165,74 @@ Each hourly block must contain the following comprehensive data set:
 **Given** the user runs `weather "Geelong"`
 **Then** the output should cover Today + Tomorrow (default `1`)
 **And** the location should be "Geelong"
+
+### Scenario 22: Visuals - Time Formatting (AM)
+**Given** the time is 09:00 hours (24h)
+**When** the line is rendered
+**Then** the time section should be `09:00 AM`
+
+### Scenario 23: Visuals - Time Formatting (PM)
+**Given** the time is 14:00 hours (24h)
+**When** the line is rendered
+**Then** the time section should be `02:00 PM`
+
+### Scenario 24: Visuals - Time Formatting (Noon/Midnight)
+**Given** the time is 12:00 hours and 00:00 hours
+**Then** 12:00 should render as `12:00 PM`
+**And** 00:00 should render as `12:00 AM`
+
+### Scenario 25: Visuals - Condition Mapping (Clear)
+**Given** a condition of "Sunny" or "Clear"
+**When** the line is rendered
+**Then** the condition section should show `☀️ Clear`
+
+### Scenario 26: Visuals - Condition Mapping (Rain)
+**Given** a condition of "Rain" or "Showers"
+**When** the line is rendered
+**Then** the condition section should show `🌧️ Rain`
+
+### Scenario 27: Visuals - Condition Mapping (Partly Cloudy)
+**Given** a condition of "Partly Cloudy"
+**When** the line is rendered
+**Then** the condition section should show `⛅ Partly Cloudy`
+
+### Scenario 28: Visuals - Feels Like Temperature
+**Given** an actual temp of 20°C and a feels like temp of 15.6°C
+**When** the line is rendered
+**Then** the temp section should show `20°C (16°C)`
+**And** the feels like value should be in parentheses and rounded
+
+### Scenario 29: Visuals - Tide Height Formatting
+**Given** a tide height of 0.84 meters
+**When** the line is rendered
+**Then** the tide section should show `0.8m` (1 decimal place)
+
+### Scenario 30: Visuals - Tide Tag (High)
+**Given** a High Tide event in the current hour
+**When** the line is rendered
+**Then** the tide section should end with `[HIGH]`
+
+### Scenario 31: Visuals - Tide Tag (Low)
+**Given** a Low Tide event in the current hour
+**When** the line is rendered
+**Then** the tide section should end with `[LOW]`
+
+### Scenario 32: Visuals - Tide Tag (None)
+**Given** NO tide extreme in the current hour
+**When** the line is rendered
+**Then** the tide section should have NO tag (e.g., `0.8m` followed by next field)
+
+### Scenario 33: Visuals - Rain Probability
+**Given** a rain probability of 0% and 55%
+**Then** 0% should render as `Rain:0%`
+**And** 55% should render as `Rain:55%`
+
+### Scenario 34: Visuals - UV Index
+**Given** a UV index of 8.2
+**When** the line is rendered
+**Then** the UV section should show `UV:8` (rounded integer)
+
+### Scenario 35: Visuals - Humidity
+**Given** a humidity of 60.5%
+**When** the line is rendered
+**Then** the humidity section should show `Hum:61%` (rounded integer)
