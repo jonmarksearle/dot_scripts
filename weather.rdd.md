@@ -236,3 +236,29 @@ Each hourly block must contain the following comprehensive data set:
 **Given** a humidity of 60.5%
 **When** the line is rendered
 **Then** the humidity section should show `Hum:61%` (rounded integer)
+
+### Scenario 36: Visuals - Tide Tag (Point High)
+**Given** a sequence of tide heights for 1:00, 2:00, 3:00, 4:00 is `0.8m, 0.9m, 0.8m, 0.8m`
+**When** the lines are rendered
+**Then** the `02:00` line (the first 0.9m) should be marked `[HIGH]`
+**And** the `03:00` line (the second 0.9m) should NOT be marked
+**And** the `01:00` and `04:00` lines should NOT be marked
+
+### Scenario 37: Visuals - Tide Tag (Point Low)
+**Given** a sequence of tide heights for 1:00, 2:00, 3:00, 4:00 is `0.5m, 0.2m, 0.3m, 0.5m`
+**When** the lines are rendered
+**Then** the `02:00` line (the first 0.2m) should be marked `[LOW]`
+**And** the `03:00` line (the second 0.2m) should NOT be marked
+
+### Scenario 38: Visuals - Tide Tag (Plateau High)
+**Given** a sequence of tide heights for 1:00, 2:00, 3:00, 4:00 is `0.8m, 0.9m, 0.9m, 0.8m`
+**When** the lines are rendered
+**Then** the `02:00` line (the first 0.9m) should be marked `[HIGH]`
+**And** the `03:00` line (the second 0.9m) should NOT be marked
+**And** the `01:00` and `04:00` lines should NOT be marked
+
+### Scenario 39: Visuals - Tide Tag (Plateau Low)
+**Given** a sequence of tide heights for 1:00, 2:00, 3:00, 4:00 is `0.5m, 0.2m, 0.2m, 0.5m`
+**When** the lines are rendered
+**Then** the `02:00` line (the first 0.2m) should be marked `[LOW]`
+**And** the `03:00` line (the second 0.2m) should NOT be marked
