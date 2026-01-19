@@ -85,14 +85,19 @@ class WeatherProvider(Protocol):
 *   **Formatting:** Fixed-width columns for vertical alignment.
 *   **Rounding:** All numeric values are rounded to integers (except Tide height at 1 decimal).
 
-## 6. CLI Execution Flow & Libraries
+## 6. Adapters (Peripheral/I-O)
+*   **`BomAdapter` (Rank 1)**: Primary authority for weather condition, temperature, and rainfall. Fetches from the BOM accessible forecast or API.
+*   **`WillyWeatherAdapter` (Rank 1 for Tides)**: Specialized provider for tide heights and extremes.
+*   **`OpenMeteoAdapter` (Rank 2)**: Reliable secondary source for weather metadata (UV, Humidity, Feels Like) and fallback for primary weather data.
+
+## 7. CLI Execution Flow & Libraries
 *   **Libraries:**
     *   **Typer:** For strict CLI argument parsing and help generation.
     *   **Rich:** For rendering the final output lines, ensuring consistent styling (colors, emoji handling) and potentially handling the fixed-width columns via a `Table` or formatted `Text` objects.
 *   **Flow:**
 1.  `Typer` entry point parses `[DAYS_EXTRA]` and `[LOCATION]`.
-2. Instantiate all `WeatherProvider` implementations (BOM, WillyWeather, TimeandDate, etc.).
+2. Instantiate all `WeatherProvider` implementations (`BomAdapter`, `WillyWeatherAdapter`, `OpenMeteoAdapter`).
 3. Execute `asyncio.gather(*[p.fetch_weather(...) for p in providers])`.
 4. Pass results to `ConsolidationEngine`.
 5. Apply Tide Extremum calculations to the consolidated list.
-6. Print output grouped by date headers.
+6. Print output grouped by date headers using `Rich`.
