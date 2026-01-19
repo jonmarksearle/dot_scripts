@@ -124,3 +124,48 @@ class WeatherProvider(Protocol):
 | 10 | MetEye | Localized | 6km grid precision | HTML | None | `http://www.bom.gov.au/australia/meteye/` | Future |
 | 11 | Wttr.in | Backup | Simple text fallback | Text | None | `https://wttr.in/` | Future |
 | 12 | BayWx | Port Phillip | Live Bay conditions | HTML | None | `http://www.baywx.com.au/` | Future |
+
+--------------------------------------------
+## ADENDUM: HourlyWeather as a dataclass
+
+```python
+from dataclasses import dataclass
+from typing import Optional
+from enum import StrEnum
+from datetime import datetime
+
+@dataclass(frozen=True, slots=True)
+class HourlyWeather:
+    rank: int
+    date: str
+    hour: str
+    condition: Optional[WeatherCondition] = None
+    temp: Optional[int] = None
+    feels_like: Optional[int] = None
+    wind_speed: Optional[int] = None
+    wind_dir: Optional[WindDirection] = None
+    tide_height: Optional[float] = None
+    rain_prob: Optional[int] = None
+    uv_index: Optional[int] = None
+    humidity: Optional[int] = None
+
+    def __post_init__(self):
+        if self.rank < 1:
+            raise ValueError(f"rank must be >= 1, got {self.rank}")
+        
+        try:
+            datetime.strptime(self.date, "%Y-%m-%d")
+        except ValueError:
+            raise ValueError(f"Invalid date format: {self.date}. Expected YYYY-MM-DD")
+
+        self._check_range("temp", self.temp, -50, 60)
+        self._check_range("feels_like", self.feels_like, -50, 60)
+        self._check_range("wind_speed", self.wind_speed, 0, 300)
+        self._check_range("rain_prob", self.rain_prob, 0, 100)
+        self._check_range("humidity", self.humidity, 0, 100)
+        self._check_range("uv_index", self.uv_index, 0, 20)
+
+    def _check_range(self, name: str, val: Optional[int], vmin: int, vmax: int):
+        if val is not None and not (vmin <= val <= vmax):
+            raise ValueError(f"{name} must be between {vmin} and {vmax}, got {val}")
+```
