@@ -9,26 +9,47 @@ Implement a robust, extensible CLI tool for hourly coastal weather and tide fore
 *   **Decentralized Location:** Each provider independently resolves the raw location string (e.g., "Aspendale") to its own internal identifiers.
 *   **Fault Tolerance:** Provider failures are logged to `stderr` but do not stop the overall execution if other data is available.
 
-## 3. Core Data Model
+## 3. Core Data Model (Pydantic)
+
+Using `pydantic.BaseModel` for automatic validation and type safety.
 
 ```python
-from dataclasses import dataclass
-from typing import Optional, Protocol, Iterator, Self
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
+from enum import StrEnum
 
-@dataclass(frozen=True, slots=True)
-class HourlyWeather:
-    rank: int            # Lower number = higher precedence
-    date: str            # e.g., "2026-01-19"
-    hour: str            # e.g., "10:00 AM"
-    condition: Optional[str] = None      # e.g., "☀️ Clear"
-    temp: Optional[int] = None           # Rounded Celsius
-    feels_like: Optional[int] = None     # Rounded Celsius
-    wind_speed: Optional[int] = None     # km/h
-    wind_dir: Optional[str] = None       # e.g., "SW"
-    tide_height: Optional[float] = None  # Meters (1 decimal)
-    rain_prob: Optional[int] = None      # Percentage
-    uv_index: Optional[int] = None       # Integer
-    humidity: Optional[int] = None       # Percentage
+class WindDirection(StrEnum):
+    N = "↓ N"
+    NE = "↙ NE"
+    E = "← E"
+    SE = "↖ SE"
+    S = "↑ S"
+    SW = "↗ SW"
+    W = "→ W"
+    NW = "↘ NW"
+    VAR = "• VAR"
+
+class WeatherCondition(StrEnum):
+    CLEAR = "☀️ Clear"
+    CLOUDY = "☁️ Cloudy"
+    PARTLY_CLOUDY = "⛅ Partly Cloudy"
+    RAIN = "🌧️ Rain"
+    STORM = "⛈️ Storm"
+    UNKNOWN = "❓ Unknown"
+
+class HourlyWeather(BaseModel):
+    rank: int = Field(ge=1)
+    date: str
+    hour: str
+    condition: Optional[WeatherCondition] = None
+    temp: Optional[int] = Field(None, ge=-50, le=60)
+    feels_like: Optional[int] = Field(None, ge=-50, le=60)
+    wind_speed: Optional[int] = Field(None, ge=0)
+    wind_dir: Optional[WindDirection] = None
+    tide_height: Optional[float] = None
+    rain_prob: Optional[int] = Field(None, ge=0, le=100)
+    uv_index: Optional[int] = Field(None, ge=0)
+    humidity: Optional[int] = Field(None, ge=0, le=100)
 ```
 
 ## 4. Provider Interface
@@ -56,7 +77,7 @@ class WeatherProvider(Protocol):
 
 ### 5.2 Visual Formatter
 *   **Responsibility:** Renders the final terminal line by deriving visual elements.
-*   **Wind Arrow:** Calculated from `wind_dir`. Arrows point **TO** the direction of flow (e.g., N wind blows South -> `↓`).
+*   **Wind:** Displayed as the string value of `wind_dir`.
 *   **Tide Tag:** Calculated by comparing the `tide_height` of the current hour with its immediate neighbors in the consolidated sequence.
     *   **High Tide:** `height > previous` AND `height >= next`.
     *   **Low Tide:** `height < previous` AND `height <= next`.
