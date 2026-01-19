@@ -287,50 +287,43 @@ Each hourly block must contain the following comprehensive data set:
 **When** the data is consolidated
 **Then** the final temperature should be `None` (or displayed as placeholder "-")
 
-### Scenario 44: Logic - Rank/Fallback (Condition)
-**Given** Provider A (Rank 1) reports Condition `None`
-**And** Provider B (Rank 2) reports Condition "Rain"
+### Scenario Outline: Logic - Rank/Fallback for all fields
+**Given** Provider A (Rank 1) reports <field> <valA>
+**And** Provider B (Rank 2) reports <field> <valB>
 **When** the data is consolidated
-**Then** the final Condition should be "Rain"
+**Then** the final <field> should be <result>
 
-### Scenario 45: Logic - Rank/Fallback (Feels Like)
-**Given** Provider A (Rank 1) reports Feels Like `None`
-**And** Provider B (Rank 2) reports Feels Like 18°C
-**When** the data is consolidated
-**Then** the final Feels Like temperature should be 18°C
-
-### Scenario 46: Logic - Rank/Fallback (Wind Speed)
-**Given** Provider A (Rank 1) reports Wind Speed `None`
-**And** Provider B (Rank 2) reports Wind Speed 20km/h
-**When** the data is consolidated
-**Then** the final Wind Speed should be 20km/h
-
-### Scenario 47: Logic - Rank/Fallback (Wind Direction)
-**Given** Provider A (Rank 1) reports Wind Direction `None`
-**And** Provider B (Rank 2) reports Wind Direction "SW"
-**When** the data is consolidated
-**Then** the final Wind Direction should be "SW"
-
-### Scenario 48: Logic - Rank/Fallback (Rain Prob)
-**Given** Provider A (Rank 1) reports Rain Probability `None`
-**And** Provider B (Rank 2) reports Rain Probability 50%
-**When** the data is consolidated
-**Then** the final Rain Probability should be 50%
-
-### Scenario 49: Logic - Rank/Fallback (UV Index)
-**Given** Provider A (Rank 1) reports UV Index `None`
-**And** Provider B (Rank 2) reports UV Index 5
-**When** the data is consolidated
-**Then** the final UV Index should be 5
-
-### Scenario 50: Logic - Rank/Fallback (Humidity)
-**Given** Provider A (Rank 1) reports Humidity `None`
-**And** Provider B (Rank 2) reports Humidity 80%
-**When** the data is consolidated
-**Then** the final Humidity should be 80%
-
-### Scenario 51: Logic - Rank/Fallback (Tide Height)
-**Given** Provider A (Rank 1) reports Tide Height `None`
-**And** Provider B (Rank 2) reports Tide Height 1.2m
-**When** the data is consolidated
-**Then** the final Tide Height should be 1.2m
+**Examples:**
+    | field             | valA       | valB       | result     | note                |
+    | Condition         | `None`     | "Rain"     | "Rain"     | Fallback to Rank 2  |
+    | Condition         | "Clear"    | "Rain"     | "Clear"    | Rank 1 wins         |
+    | Condition         | "Storm"    | `None`     | "Storm"    | Rank 1 wins         |
+    | Condition         | `None`     | `None`     | `None`     | All missing         |
+    | Feels Like        | `None`     | 18°C       | 18°C       | Fallback            |
+    | Feels Like        | 20°C       | 18°C       | 20°C       | Rank 1 wins         |
+    | Feels Like        | 22°C       | `None`     | 22°C       | Rank 1 wins         |
+    | Feels Like        | `None`     | `None`     | `None`     | All missing         |
+    | Wind Speed        | `None`     | 20km/h     | 20km/h     | Fallback            |
+    | Wind Speed        | 10km/h     | 20km/h     | 10km/h     | Rank 1 wins         |
+    | Wind Speed        | 15km/h     | `None`     | 15km/h     | Rank 1 wins         |
+    | Wind Speed        | `None`     | `None`     | `None`     | All missing         |
+    | Wind Direction    | `None`     | "SW"       | "SW"       | Fallback            |
+    | Wind Direction    | "N"        | "SW"       | "N"        | Rank 1 wins         |
+    | Wind Direction    | "E"        | `None`     | "E"        | Rank 1 wins         |
+    | Wind Direction    | `None`     | `None`     | `None`     | All missing         |
+    | Rain Probability  | `None`     | 50%        | 50%        | Fallback            |
+    | Rain Probability  | 10%        | 50%        | 10%        | Rank 1 wins         |
+    | Rain Probability  | 5%         | `None`     | 5%         | Rank 1 wins         |
+    | Rain Probability  | `None`     | `None`     | `None`     | All missing         |
+    | UV Index          | `None`     | 5          | 5          | Fallback            |
+    | UV Index          | 8          | 5          | 8          | Rank 1 wins         |
+    | UV Index          | 2          | `None`     | 2          | Rank 1 wins         |
+    | UV Index          | `None`     | `None`     | `None`     | All missing         |
+    | Humidity          | `None`     | 80%        | 80%        | Fallback            |
+    | Humidity          | 40%        | 80%        | 40%        | Rank 1 wins         |
+    | Humidity          | 60%        | `None`     | 60%        | Rank 1 wins         |
+    | Humidity          | `None`     | `None`     | `None`     | All missing         |
+    | Tide Height       | `None`     | 1.2m       | 1.2m       | Fallback            |
+    | Tide Height       | 0.5m       | 1.2m       | 0.5m       | Rank 1 wins         |
+    | Tide Height       | 0.8m       | `None`     | 0.8m       | Rank 1 wins         |
+    | Tide Height       | `None`     | `None`     | `None`     | All missing         |
