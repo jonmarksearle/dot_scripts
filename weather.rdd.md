@@ -262,3 +262,75 @@ Each hourly block must contain the following comprehensive data set:
 **When** the lines are rendered
 **Then** the `02:00` line (the first 0.2m) should be marked `[LOW]`
 **And** the `03:00` line (the second 0.2m) should NOT be marked
+
+### Scenario 40: Logic - Rank Precedence (Direct Overwrite)
+**Given** Provider A (Rank 1) reports Temp 20°C
+**And** Provider B (Rank 2) reports Temp 25°C for the same hour
+**When** the data is consolidated
+**Then** the final temperature should be 20°C (Rank 1 wins)
+
+### Scenario 41: Logic - Missing Data Fallback
+**Given** Provider A (Rank 1) reports Temp `None` (missing)
+**And** Provider B (Rank 2) reports Temp 25°C
+**When** the data is consolidated
+**Then** the final temperature should be 25°C (Fallback to Rank 2)
+
+### Scenario 42: Logic - Field-Level Mixing
+**Given** Provider A (Rank 1) has Temp 20°C but Wind `None`
+**And** Provider B (Rank 2) has Temp 25°C and Wind 15km/h
+**When** the data is consolidated
+**Then** the final object should have Temp 20°C (from Rank 1)
+**And** Wind 15km/h (from Rank 2)
+
+### Scenario 43: Logic - All Data Missing
+**Given** Provider A (Rank 1) and Provider B (Rank 2) BOTH report Temp `None`
+**When** the data is consolidated
+**Then** the final temperature should be `None` (or displayed as placeholder "-")
+
+### Scenario 44: Logic - Rank/Fallback (Condition)
+**Given** Provider A (Rank 1) reports Condition `None`
+**And** Provider B (Rank 2) reports Condition "Rain"
+**When** the data is consolidated
+**Then** the final Condition should be "Rain"
+
+### Scenario 45: Logic - Rank/Fallback (Feels Like)
+**Given** Provider A (Rank 1) reports Feels Like `None`
+**And** Provider B (Rank 2) reports Feels Like 18°C
+**When** the data is consolidated
+**Then** the final Feels Like temperature should be 18°C
+
+### Scenario 46: Logic - Rank/Fallback (Wind Speed)
+**Given** Provider A (Rank 1) reports Wind Speed `None`
+**And** Provider B (Rank 2) reports Wind Speed 20km/h
+**When** the data is consolidated
+**Then** the final Wind Speed should be 20km/h
+
+### Scenario 47: Logic - Rank/Fallback (Wind Direction)
+**Given** Provider A (Rank 1) reports Wind Direction `None`
+**And** Provider B (Rank 2) reports Wind Direction "SW"
+**When** the data is consolidated
+**Then** the final Wind Direction should be "SW"
+
+### Scenario 48: Logic - Rank/Fallback (Rain Prob)
+**Given** Provider A (Rank 1) reports Rain Probability `None`
+**And** Provider B (Rank 2) reports Rain Probability 50%
+**When** the data is consolidated
+**Then** the final Rain Probability should be 50%
+
+### Scenario 49: Logic - Rank/Fallback (UV Index)
+**Given** Provider A (Rank 1) reports UV Index `None`
+**And** Provider B (Rank 2) reports UV Index 5
+**When** the data is consolidated
+**Then** the final UV Index should be 5
+
+### Scenario 50: Logic - Rank/Fallback (Humidity)
+**Given** Provider A (Rank 1) reports Humidity `None`
+**And** Provider B (Rank 2) reports Humidity 80%
+**When** the data is consolidated
+**Then** the final Humidity should be 80%
+
+### Scenario 51: Logic - Rank/Fallback (Tide Height)
+**Given** Provider A (Rank 1) reports Tide Height `None`
+**And** Provider B (Rank 2) reports Tide Height 1.2m
+**When** the data is consolidated
+**Then** the final Tide Height should be 1.2m
