@@ -466,3 +466,9 @@ $(date -u +"%Y-%m-%dT%H:%M:%SZ") git commit -m "Update change log"
 2026-01-14T06:30:37Z [Codex] write clean_md.review.3.response.md
 2026-01-14T06:30:48Z [Codex] git add -A
 2026-01-14T06:31:00Z [Codex] git commit -m 'clean_md review cycle n3'
+2026-01-22T14:09:45Z [Codex] Set executable bit on .scripts/*.py.
+2026-01-23T00:02:22Z [Codex] Created make-keywords-prototype.py for Confluence keyword indexing.
+2026-01-23T00:09:30Z [Codex] Restored make-keywords-prototype.py and updated make-index-json-prototype.py to use shared single-word keywording logic.
+2026-01-23T00:18:26Z [Codex] Fixed make-index-json-prototype.py to import local make_keywords_prototype module via sys.path.
+2026-01-23T00:20:27Z [Codex] Rebuilt make_keywords_prototype module and wrapper scripts for single-word keyword extraction and index generation.
+2026-01-23T00:23:41Z [Codex] Updated make_keywords_prototype.py to exclude author tokens, add generic blocklist, and boost domain terms.

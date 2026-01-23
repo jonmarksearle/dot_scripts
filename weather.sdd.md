@@ -134,6 +134,26 @@ from typing import Optional
 from enum import StrEnum
 from datetime import datetime
 
+class WindDirection(StrEnum):
+    N = "↓ N"
+    NE = "↙ NE"
+    E = "← E"
+    SE = "↖ SE"
+    S = "↑ S"
+    SW = "↗ SW"
+    W = "→ W"
+    NW = "↘ NW"
+    VAR = "• VAR"
+
+class WeatherCondition(StrEnum):
+    CLEAR = "☀️ Clear"
+    CLOUDY = "☁️ Cloudy"
+    PARTLY_CLOUDY = "⛅ Partly Cloudy"
+    RAIN = "🌧️ Rain"
+    STORM = "⛈️ Storm"
+    SNOW = "🌨️ Snow"
+    UNKNOWN = "❓ Unknown"
+
 @dataclass(frozen=True, slots=True)
 class HourlyWeather:
     rank: int
